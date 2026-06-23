@@ -314,6 +314,18 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
         </div>
       </div>
 
+      {/* Save Product Button - Show to authenticated users */}
+      {isAuthenticated && (
+        <button
+          onClick={handleSave}
+          className="w-full py-4 px-6 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-3 group"
+        >
+          <Save className="w-5 h-5 group-hover:animate-pulse" />
+          <span>{justSaved ? "Product Saved Successfully!" : "Save Product"}</span>
+          {justSaved && <Check className="w-5 h-5" />}
+        </button>
+      )}
+
       {/* Native Ad Tile - Show to unauthenticated users */}
       <NativeAdTile 
         isVisible={!isAuthenticated}
