@@ -19,6 +19,18 @@ export function SubscriptionModal({ isOpen, onClose, onSuccess }: SubscriptionMo
 
   if (!isOpen || !user) return null
 
+  // Prevent body scroll when modal is open
+  if (typeof document !== 'undefined') {
+    document.body.style.overflow = 'hidden'
+  }
+
+  const handleClose = () => {
+    if (typeof document !== 'undefined') {
+      document.body.style.overflow = 'auto'
+    }
+    onClose()
+  }
+
   const handlePlanSelect = async (planType: keyof typeof SUBSCRIPTION_PLANS) => {
     setLoading(true)
     setError(null)
@@ -67,7 +79,7 @@ export function SubscriptionModal({ isOpen, onClose, onSuccess }: SubscriptionMo
 
                 if (activateResponse.ok) {
                   onSuccess?.()
-                  onClose()
+                  handleClose()
                 } else {
                   setError('Failed to activate subscription')
                 }
@@ -94,8 +106,14 @@ export function SubscriptionModal({ isOpen, onClose, onSuccess }: SubscriptionMo
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div 
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+      onClick={handleClose}
+    >
+      <div 
+        className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-slate-200 px-6 lg:px-8 py-6 flex justify-between items-center">
           <div>
@@ -103,7 +121,7 @@ export function SubscriptionModal({ isOpen, onClose, onSuccess }: SubscriptionMo
             <p className="text-sm text-slate-600 mt-1">Choose a subscription plan to unlock all features</p>
           </div>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
           >
             <X className="w-5 h-5 text-slate-400" />
