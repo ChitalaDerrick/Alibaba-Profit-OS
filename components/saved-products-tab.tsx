@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useSavedProducts } from "@/lib/secure-hooks"
 import { formatCurrency } from "@/lib/calculator-store"
-import { Trash2, ChevronDown, ChevronUp, Package, Download } from "lucide-react"
+import { Trash2, ChevronDown, ChevronUp, Package, Download, Lock } from "lucide-react"
 
 interface SavedProductsTabProps {
   isAuthenticated: boolean

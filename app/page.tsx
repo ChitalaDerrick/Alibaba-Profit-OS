@@ -164,7 +164,10 @@ export default function Home() {
 
         {/* Reports Tab */}
         {activeTab === 'reports' && (
-          <ReportsTab />
+          <ReportsTab 
+            isAuthenticated={isAuthenticated}
+            onSignupClick={() => setShowSignupGate(true)}
+          />
         )}
       </main>
       
