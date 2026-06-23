@@ -41,22 +41,27 @@ function CheckoutContent() {
         body: JSON.stringify({
           plan: planParam,
           amount: plan.price * 100, // Convert to kobo
-          email: 'temp@example.com', // Temporary email for now
         }),
       })
 
+      const data = await response.json()
+
       if (!response.ok) {
-        throw new Error('Failed to initialize payment')
+        console.error('[v0] Payment API error:', data)
+        const errorMsg = data.error || 'Failed to initialize payment'
+        throw new Error(errorMsg)
       }
 
-      const data = await response.json()
-      
       // Redirect to Paystack payment URL
       if (data.authorization_url) {
         window.location.href = data.authorization_url
+      } else {
+        throw new Error('No payment URL received from server')
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Payment initialization failed')
+      const errorMessage = err instanceof Error ? err.message : 'Payment initialization failed'
+      console.error('[v0] Payment error:', errorMessage)
+      setError(errorMessage)
       setLoading(false)
     }
   }

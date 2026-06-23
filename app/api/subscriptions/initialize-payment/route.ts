@@ -6,6 +6,7 @@ const PAYSTACK_API_URL = 'https://api.paystack.co'
 export async function POST(request: NextRequest) {
   try {
     if (!PAYSTACK_SECRET_KEY) {
+      console.error('[v0] PAYSTACK_SECRET_KEY not configured')
       return NextResponse.json(
         { error: 'Payment gateway not configured' },
         { status: 500 }
@@ -14,12 +15,23 @@ export async function POST(request: NextRequest) {
 
     const { plan, amount, email } = await request.json()
 
-    if (!plan || !amount || !email) {
+    if (!plan || !amount) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Missing required fields: plan and amount' },
         { status: 400 }
       )
     }
+
+    // Use provided email or generate a temporary one for demo
+    const paymentEmail = email || `user-${Date.now()}@pipos.app`
+
+    // Get the base URL from the request
+    const host = request.headers.get('host')
+    const protocol = request.headers.get('x-forwarded-proto') || 'http'
+    const baseUrl = `${protocol}://${host}`
+    const callbackUrl = `${baseUrl}/checkout/callback`
+
+    console.log('[v0] Initializing payment with:', { plan, amount, email: paymentEmail, callbackUrl })
 
     // Initialize Paystack payment
     const response = await fetch(`${PAYSTACK_API_URL}/transaction/initialize`, {
@@ -29,22 +41,24 @@ export async function POST(request: NextRequest) {
         Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
       },
       body: JSON.stringify({
-        email,
+        email: paymentEmail,
         amount, // amount in kobo
         metadata: {
           plan,
           type: 'subscription',
         },
-        callback_url: `${process.env.NEXT_PUBLIC_APP_URL}/checkout/callback?reference=`,
+        callback_url: callbackUrl,
       }),
     })
 
     const data = await response.json()
 
+    console.log('[v0] Paystack response:', { status: response.status, data })
+
     if (!response.ok || !data.status) {
       console.error('[v0] Paystack initialization failed:', data)
       return NextResponse.json(
-        { error: data.message || 'Payment initialization failed' },
+        { error: data.message || 'Payment initialization failed', details: data },
         { status: 400 }
       )
     }
@@ -57,7 +71,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('[v0] Payment initialization error:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     )
   }
