@@ -4,12 +4,10 @@ import { useState, useEffect } from "react"
 import { Navbar } from "@/components/navbar"
 import { InputPanel } from "@/components/input-panel"
 import { DashboardPanel } from "@/components/dashboard-panel"
-import { PaywallModal } from "@/components/paywall-modal"
 import { SavedProductsTab } from "@/components/saved-products-tab"
 import { ReportsTab } from "@/components/reports-tab"
 import { AffiliateRecommendations } from "@/components/affiliate-recommendations"
 import { SignupGateModal } from "@/components/signup-gate-modal"
-import { useSubscriptionStatus } from "@/lib/secure-hooks"
 import { useSubscription } from "@/lib/subscription-hooks"
 import { useCalculator } from "@/lib/calculator-store"
 import { useAuth } from "@/lib/auth-hooks"
@@ -18,27 +16,10 @@ export default function Home() {
   const [showPaywall, setShowPaywall] = useState(false)
   const [showSignupGate, setShowSignupGate] = useState(false)
   const [activeTab, setActiveTab] = useState('calculator')
-  const { subscription, fetchSubscription } = useSubscriptionStatus()
   const { subscription: currentSubscription } = useSubscription()
   const { user, isLoading: authLoading } = useAuth()
   const { state } = useCalculator()
-  const [sessionTokens, setSessionTokens] = useState(70) // Free tier: 70 calculations
 
-  useEffect(() => {
-    if (user) {
-      // User is authenticated - fetch their subscription status from DB
-      fetchSubscription()
-    } else {
-      // User is NOT authenticated - use session-based tracking from localStorage
-      const savedTokens = localStorage.getItem('session_tokens')
-      if (savedTokens) {
-        setSessionTokens(parseInt(savedTokens))
-      }
-    }
-  }, [user, fetchSubscription])
-
-  const tokenBalance = user ? (subscription?.remaining || 0) : sessionTokens
-  const isOutOfTokens = tokenBalance <= 0
   const isAuthenticated = !!user
   const hasActiveSubscription = currentSubscription?.isActive && currentSubscription?.type !== 'free'
   const isSuperUser = currentSubscription?.type === 'super_user'
@@ -51,23 +32,6 @@ export default function Home() {
       return
     }
     setActiveTab(tab)
-  }
-
-  const handleTokensDeducted = () => {
-    if (!isAuthenticated) {
-      // Deduct from session tokens
-      const newBalance = Math.max(0, sessionTokens - 1)
-      setSessionTokens(newBalance)
-      localStorage.setItem('session_tokens', newBalance.toString())
-      
-      // Show signup gate if free tokens exhausted
-      if (newBalance <= 0) {
-        setShowSignupGate(true)
-      }
-    } else {
-      // Refresh token balance from DB
-      fetchSubscription()
-    }
   }
 
   // Don't render until auth is loaded
@@ -153,20 +117,13 @@ export default function Home() {
         {activeTab === 'calculator' && (
           <>
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-              <InputPanel onCalculate={handleTokensDeducted} />
+              <InputPanel />
               <DashboardPanel 
                 canSave={isAuthenticated}
-                onSaveDisabled={() => isAuthenticated ? setShowPaywall(true) : setShowSignupGate(true)}
+                onSaveDisabled={() => setShowSignupGate(true)}
                 isAuthenticated={isAuthenticated}
               />
             </div>
-
-            {/* Saved Products List - Only show to authenticated users */}
-            {isAuthenticated && (
-              <SavedProductsList 
-                onUpgradeClick={() => setShowPaywall(true)} 
-              />
-            )}
           </>
         )}
 
@@ -200,32 +157,7 @@ export default function Home() {
         {activeTab === 'reports' && (
           <ReportsTab />
         )}
-
-        {/* Out of tokens overlay - For authenticated users */}
-        {isAuthenticated && isOutOfTokens && subscription && (
-          <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-40">
-            <button
-              onClick={() => setShowPaywall(true)}
-              className="pointer-events-auto bg-white/95 backdrop-blur-sm border border-slate-200 shadow-xl rounded-2xl px-8 py-4 flex items-center gap-3 hover:shadow-2xl transition-shadow"
-            >
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
-                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10.5 1.5H9.5V.5h1v1zm0 17H9.5v1h1v-1zM19 10.5v-1h1v1h-1zM0 10.5v-1h1v1H0zm13.657-5.657L14.07 4.07l.707-.707-.706.707zm-7.314 7.314L6.93 15.93l-.707.707.706-.707zm7.314 0L14.07 15.93l.707.707-.706-.707zm-7.314-7.314L6.93 4.07l-.707-.707.706.707zM10 5a5 5 0 110 10 5 5 0 010-10z" />
-                </svg>
-              </div>
-              <div className="text-left">
-                <p className="font-bold text-slate-900">Out of tokens</p>
-                <p className="text-sm text-slate-500">Click to buy more</p>
-              </div>
-            </button>
-          </div>
-        )}
       </main>
-
-      <PaywallModal 
-        isOpen={showPaywall} 
-        onClose={() => setShowPaywall(false)} 
-      />
       
       <SignupGateModal 
         isOpen={showSignupGate}

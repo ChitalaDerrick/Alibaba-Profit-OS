@@ -1,9 +1,9 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useSavedProducts, useSubscriptionStatus } from "@/lib/secure-hooks"
+import { useSavedProducts } from "@/lib/secure-hooks"
 import { formatCurrency } from "@/lib/calculator-store"
-import { Lock, Trash2, ChevronDown, ChevronUp, Package, Download } from "lucide-react"
+import { Trash2, ChevronDown, ChevronUp, Package, Download } from "lucide-react"
 
 interface SavedProductsTabProps {
   isAuthenticated: boolean
@@ -13,7 +13,6 @@ interface SavedProductsTabProps {
 
 export function SavedProductsTab({ isAuthenticated, onSignupClick, onReportsClick }: SavedProductsTabProps) {
   const { products, isLoading, fetchProducts, deleteProduct } = useSavedProducts()
-  const { subscription } = useSubscriptionStatus()
   const [showAll, setShowAll] = useState(false)
 
   useEffect(() => {
