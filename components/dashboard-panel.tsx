@@ -60,23 +60,27 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
     }
 
     try {
+      const payload = {
+        productName: state.itemName || `Product ${Date.now()}`,
+        unitCost: state.unitCost,
+        unitSale: state.unitSale,
+        quantity: state.quantity,
+        profitMargin: parseFloat((results.profitMargin || 0).toFixed(1)),
+        totalProfit: results.netProfit,
+      }
+      
       // Save product directly without modal
       const response = await fetch('/api/products', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          productName: state.itemName || `Product ${Date.now()}`,
-          unitCost: state.unitCost,
-          unitSale: state.unitSale,
-          quantity: state.quantity,
-          profitMargin: results.profitMargin?.toFixed(1) || '0.0',
-          totalProfit: results.netProfit,
-        }),
+        body: JSON.stringify(payload),
       })
 
+      const responseData = await response.json()
+
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Failed to save product')
+        throw new Error(responseData.error || 'Failed to save product')
       }
 
       // Show success indicator
