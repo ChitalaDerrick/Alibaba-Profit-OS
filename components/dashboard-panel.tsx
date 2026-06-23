@@ -4,7 +4,6 @@ import { Info, Save, Check } from "lucide-react"
 import { useState, useEffect, useRef } from "react"
 import { useCalculator, formatCurrency } from "@/lib/calculator-store"
 import { incrementFreeCalculations, hasExhaustedFreeCalculations } from "@/lib/free-calculations"
-import { SaveProductModal } from "./save-product-modal"
 import { NativeAdTile } from "./native-ad-tile"
 
 interface DashboardPanelProps {
@@ -17,7 +16,6 @@ interface DashboardPanelProps {
 export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated = false, onCalculationExhausted }: DashboardPanelProps) {
   const { state, results } = useCalculator()
   const [justSaved, setJustSaved] = useState(false)
-  const [showSaveModal, setShowSaveModal] = useState(false)
   const prevNetProfitRef = useRef<number | null>(null)
 
   // Track when a new calculation occurs
@@ -61,14 +59,37 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
       return
     }
 
-    // Show the save modal to get product name
-    setShowSaveModal(true)
-  }
+    try {
+      // Save product directly without modal
+      const response = await fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productName: state.itemName || `Product ${Date.now()}`,
+          unitCost: state.unitCost,
+          unitSale: state.unitSale,
+          quantity: state.quantity,
+          profitMargin: results.profitMargin?.toFixed(1) || '0.0',
+          totalProfit: results.netProfit,
+        }),
+      })
 
-  const handleSaveSuccess = () => {
-    // Show success indicator
-    setJustSaved(true)
-    setTimeout(() => setJustSaved(false), 2000)
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to save product')
+      }
+
+      // Show success indicator
+      setJustSaved(true)
+      
+      // Reload page after short delay to show success feedback
+      setTimeout(() => {
+        window.location.href = window.location.href
+      }, 1500)
+    } catch (error) {
+      console.error('[v0] Save error:', error)
+      alert(`Error saving product: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
   }
 
   const canSaveProduct = state.unitCost > 0 && state.unitSale > 0
@@ -95,13 +116,7 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
   const isNegativeProfit = results.netProfit < 0
 
   return (
-    <>
-      <SaveProductModal 
-        isOpen={showSaveModal}
-        onClose={() => setShowSaveModal(false)}
-        onSuccess={handleSaveSuccess}
-      />
-      <div className="lg:col-span-8 space-y-6">
+    <div className="lg:col-span-8 space-y-6">
       {/* Main KPI Card */}
       <div className="bg-slate-900 rounded-[2.5rem] p-10 text-white relative overflow-hidden shadow-2xl">
         {/* Background Decor */}
@@ -334,6 +349,5 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
         adDescription="Discover powerful e-commerce tools and resources that help you manage your store more efficiently and grow your sales."
       />
     </div>
-    </>
   )
 }

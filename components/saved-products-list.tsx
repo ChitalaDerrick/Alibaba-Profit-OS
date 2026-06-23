@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react"
 import { useSavedProducts } from "@/lib/secure-hooks"
 import { formatCurrency } from "@/lib/calculator-store"
-import { Trash2, ChevronDown, ChevronUp, Package } from "lucide-react"
+import { Trash2, Package } from "lucide-react"
+import { ProductDetailModal } from "./product-detail-modal"
 
 interface SavedProductsListProps {
   onUpgradeClick: () => void
@@ -11,7 +12,7 @@ interface SavedProductsListProps {
 
 export function SavedProductsList({ onUpgradeClick }: SavedProductsListProps) {
   const { products, isLoading, fetchProducts, deleteProduct } = useSavedProducts()
-  const [showAll, setShowAll] = useState(false)
+  const [selectedProduct, setSelectedProduct] = useState<any>(null)
 
   // Load products on mount
   useEffect(() => {
@@ -21,94 +22,80 @@ export function SavedProductsList({ onUpgradeClick }: SavedProductsListProps) {
   if (isLoading) return null
   if (products.length === 0) return null
 
-  const visibleProducts = products
-
   return (
-    <div className="mt-8">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <Package className="w-5 h-5 text-slate-400" />
-          <h2 className="text-lg font-semibold text-slate-900">Saved Products</h2>
-          <span className="text-sm text-slate-500">({products.length})</span>
-        </div>
-      </div>
+    <>
+      <ProductDetailModal
+        isOpen={!!selectedProduct}
+        product={selectedProduct}
+        onClose={() => setSelectedProduct(null)}
+      />
 
-      <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-slate-100">
-                <th className="text-left py-3 px-4 font-medium text-slate-500">Product</th>
-                <th className="text-right py-3 px-4 font-medium text-slate-500">Cost</th>
-                <th className="text-right py-3 px-4 font-medium text-slate-500">Sale</th>
-                <th className="text-right py-3 px-4 font-medium text-slate-500">Qty</th>
-                <th className="text-right py-3 px-4 font-medium text-slate-500">Profit</th>
-                <th className="text-right py-3 px-4 font-medium text-slate-500">Margin</th>
-                <th className="text-center py-3 px-4 font-medium text-slate-500"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {visibleProducts.map((product) => (
-                <tr key={product.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                  <td className="py-3 px-4">
-                    <span className="font-medium text-slate-900">{product.product_name || "Unnamed"}</span>
-                  </td>
-                  <td className="py-3 px-4 text-right text-slate-600">
-                    KES {formatCurrency(product.unit_cost)}
-                  </td>
-                  <td className="py-3 px-4 text-right text-slate-600">
-                    KES {formatCurrency(product.unit_sale)}
-                  </td>
-                  <td className="py-3 px-4 text-right text-slate-600">
-                    {product.quantity}
-                  </td>
-                  <td className={`py-3 px-4 text-right font-semibold ${
-                    product.total_profit >= 0 ? "text-emerald-600" : "text-red-600"
-                  }`}>
+      <div className="mt-8">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Package className="w-5 h-5 text-slate-400" />
+            <h2 className="text-lg font-semibold text-slate-900">Saved Products</h2>
+            <span className="text-sm text-slate-500">({products.length})</span>
+          </div>
+        </div>
+
+        {/* Minimal Cards Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {products.map((product) => (
+            <div
+              key={product.id}
+              onClick={() => setSelectedProduct(product)}
+              className="bg-white/80 backdrop-blur-sm rounded-xl border border-slate-200/80 shadow-sm hover:shadow-md hover:border-slate-300 transition-all cursor-pointer p-4 group"
+            >
+              {/* Product Name */}
+              <div className="mb-3">
+                <p className="font-semibold text-slate-900 truncate group-hover:text-blue-600 transition-colors">
+                  {product.product_name || "Unnamed"}
+                </p>
+              </div>
+
+              {/* Key Metrics - Minimal */}
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500">Cost</span>
+                  <span className="font-medium text-slate-900">KES {formatCurrency(product.unit_cost)}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500">Sale</span>
+                  <span className="font-medium text-slate-900">KES {formatCurrency(product.unit_sale)}</span>
+                </div>
+                <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                  <span className="text-slate-500">Profit</span>
+                  <span className={`font-bold ${product.total_profit >= 0 ? "text-emerald-600" : "text-red-600"}`}>
                     KES {formatCurrency(product.total_profit)}
-                  </td>
-                  <td className={`py-3 px-4 text-right font-medium ${
-                    product.profit_margin >= 0 ? "text-emerald-600" : "text-red-600"
-                  }`}>
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500">Margin</span>
+                  <span className={`font-medium ${product.profit_margin >= 30 ? "text-emerald-600" : product.profit_margin >= 0 ? "text-blue-600" : "text-red-600"}`}>
                     {typeof product.profit_margin === 'number' ? product.profit_margin.toFixed(1) : '0.0'}%
-                  </td>
-                  <td className="py-3 px-4 text-center">
-                    <button
-                      onClick={() => deleteProduct(product.id)}
-                      className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                      title="Delete"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </span>
+                </div>
+              </div>
+
+              {/* Delete Button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  deleteProduct(product.id)
+                }}
+                className="mt-4 w-full py-2 text-sm text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors flex items-center justify-center gap-2"
+              >
+                <Trash2 className="w-4 h-4" />
+                Delete
+              </button>
+
+              {/* Click hint */}
+              <p className="mt-2 text-xs text-slate-400 text-center">Click to view details</p>
+            </div>
+          ))}
         </div>
-
-
-
-        {/* Show more/less for Pro users */}
-        {isPro && products.length > FREE_VISIBLE && (
-          <button
-            onClick={() => setShowAll(!showAll)}
-            className="w-full py-3 px-4 bg-slate-50 border-t border-slate-100 flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
-          >
-            {showAll ? (
-              <>
-                <ChevronUp className="w-4 h-4" />
-                Show less
-              </>
-            ) : (
-              <>
-                <ChevronDown className="w-4 h-4" />
-                Show all ({products.length})
-              </>
-            )}
-          </button>
-        )}
       </div>
-    </div>
+    </>
   )
 }
