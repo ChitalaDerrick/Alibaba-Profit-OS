@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { X } from 'lucide-react'
-import Link from 'next/link'
+import Link from 'next/link' // Used for sign-up, sign-in links
 
 interface SignupGateModalProps {
   isOpen: boolean
@@ -71,28 +71,33 @@ export function SignupGateModal({ isOpen, onClose }: SignupGateModalProps) {
 
           {/* Pricing Plans */}
           <div className="space-y-3">
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Choose Your Plan</p>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Our Plans</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {plans.map((plan) => (
-                <Link key={plan.name} href="/subscriptions/plans" className="block">
-                  <div className={`p-4 rounded-xl border-2 transition-all cursor-pointer ${
-                    plan.highlighted
-                      ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-cyan-50'
-                      : 'border-slate-200 bg-white hover:border-slate-300'
-                  }`}>
-                    <p className="font-semibold text-slate-900 text-sm">{plan.name}</p>
-                    <div className="mt-2 flex items-baseline gap-1">
-                      <span className="text-lg font-bold text-slate-900">{plan.price}</span>
-                      <span className="text-xs text-slate-500">KES</span>
-                    </div>
-                    <p className="text-xs text-slate-500 mt-1">per {plan.period}</p>
-                    {plan.highlighted && (
-                      <p className="text-xs font-semibold text-blue-600 mt-2">BEST VALUE</p>
-                    )}
+                <div key={plan.name} className={`p-4 rounded-xl border-2 ${
+                  plan.highlighted
+                    ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-cyan-50'
+                    : 'border-slate-200 bg-white'
+                }`}>
+                  <p className="font-semibold text-slate-900 text-sm">{plan.name}</p>
+                  <div className="mt-2 flex items-baseline gap-1">
+                    <span className="text-lg font-bold text-slate-900">{plan.price}</span>
+                    <span className="text-xs text-slate-500">KES</span>
                   </div>
-                </Link>
+                  <p className="text-xs text-slate-500 mt-1">per {plan.period}</p>
+                  {plan.highlighted && (
+                    <p className="text-xs font-semibold text-blue-600 mt-2">⭐ BEST VALUE</p>
+                  )}
+                </div>
               ))}
             </div>
+          </div>
+
+          {/* Payment Info */}
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+            <p className="text-xs text-amber-900">
+              <span className="font-semibold">How it works:</span> Create your account first, then choose your plan on the next page. You&apos;ll be taken to our secure payment page to complete your purchase.
+            </p>
           </div>
 
           {/* CTA Buttons */}
