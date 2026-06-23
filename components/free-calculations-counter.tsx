@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { getFreeCalculationsRemaining, getFreeCalculationsUsed, FREE_TIER_LIMIT } from "@/lib/free-calculations"
+import { getFreeCalculationsRemaining, getFreeCalculationsUsed, FREE_TIER_LIMIT, onFreeCalculationsUpdate } from "@/lib/free-calculations"
 import { AlertCircle } from "lucide-react"
 
 interface FreeCalculationsCounterProps {
@@ -21,9 +21,16 @@ export function FreeCalculationsCounter({ isAuthenticated }: FreeCalculationsCou
     }
     updateCounter()
     
-    // Listen for storage changes from other tabs
+    // Listen for calculation updates within this tab
+    const unsubscribe = onFreeCalculationsUpdate(updateCounter)
+    
+    // Also listen for storage changes from other tabs
     window.addEventListener('storage', updateCounter)
-    return () => window.removeEventListener('storage', updateCounter)
+    
+    return () => {
+      unsubscribe()
+      window.removeEventListener('storage', updateCounter)
+    }
   }, [])
 
   if (!mounted || isAuthenticated) return null

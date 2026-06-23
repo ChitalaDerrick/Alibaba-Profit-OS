@@ -22,18 +22,33 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
   useEffect(() => {
     if (isAuthenticated) return // Don't track for authenticated users
     
-    // Check if profit value changed (indicates new calculation)
-    if (prevNetProfitRef.current !== null && results.netProfit !== prevNetProfitRef.current) {
+    // Create a unique calculation signature from all input values
+    const calculationSignature = JSON.stringify({
+      itemName: state.itemName,
+      unitCost: state.unitCost,
+      quantity: state.quantity,
+      unitSale: state.unitSale,
+      weight: state.weight,
+      airRate: state.airRate,
+      seaRate: state.seaRate,
+      adBudget: state.adBudget,
+      shippingMethod: state.shippingMethod,
+    })
+    
+    // Store the signature and compare on next render
+    if (prevNetProfitRef.current !== calculationSignature && prevNetProfitRef.current !== null) {
       const updated = incrementFreeCalculations()
+      console.log('[v0] Calculation tracked. Remaining:', 10 - updated)
       
       // Check if user just exhausted their free calculations
       if (hasExhaustedFreeCalculations()) {
+        console.log('[v0] Free calculations exhausted!')
         onCalculationExhausted?.()
       }
     }
     
-    prevNetProfitRef.current = results.netProfit
-  }, [results.netProfit, isAuthenticated, onCalculationExhausted])
+    prevNetProfitRef.current = calculationSignature
+  }, [state, isAuthenticated, onCalculationExhausted])
 
   const handleSave = async () => {
     // If user is NOT authenticated, show signup gate instead of saving
