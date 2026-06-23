@@ -3,6 +3,30 @@ export const FREE_TIER_LIMIT = 10
 const STORAGE_KEY = 'free_calculations_used'
 const UPDATE_EVENT = 'freeCalculationsUpdated'
 
+// A calculation is complete when user has entered shipping information
+// For AIR: weight > 0
+// For SEA: length > 0 && width > 0 && height > 0
+export function isCalculationComplete(
+  unitCost: number,
+  unitSale: number,
+  quantity: number,
+  shippingMethod: "AIR" | "SEA",
+  weight: number = 0,
+  length: number = 0,
+  width: number = 0,
+  height: number = 0
+): boolean {
+  // Must have basic product info
+  const hasBasicInfo = unitCost > 0 && unitSale > 0 && quantity > 0
+  
+  // Must have shipping info based on method
+  const hasShippingInfo =
+    (shippingMethod === "AIR" && weight > 0) ||
+    (shippingMethod === "SEA" && length > 0 && width > 0 && height > 0)
+  
+  return hasBasicInfo && hasShippingInfo
+}
+
 // Custom event for notifying components of updates within the same tab
 let updateListeners: (() => void)[] = []
 

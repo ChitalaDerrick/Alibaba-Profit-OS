@@ -19,8 +19,20 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
   const prevNetProfitRef = useRef<number | null>(null)
 
   // Track when a new calculation occurs
+  // A calculation is complete when:
+  // 1. Cost, Sale Price, and Quantity are filled
+  // 2. AND shipping info is entered (either weight for AIR or dimensions for SEA)
   useEffect(() => {
     if (isAuthenticated) return // Don't track for authenticated users
+    
+    // Check if calculation is complete (has shipping info)
+    const hasShippingInfo = 
+      (state.shippingMethod === "AIR" && state.weight > 0) ||
+      (state.shippingMethod === "SEA" && state.length > 0 && state.width > 0 && state.height > 0)
+    
+    const hasBasicInfo = state.unitCost > 0 && state.unitSale > 0 && state.quantity > 0
+    
+    const isCalculationComplete = hasBasicInfo && hasShippingInfo
     
     // Create a unique calculation signature from all input values
     const calculationSignature = JSON.stringify({
@@ -29,6 +41,9 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
       quantity: state.quantity,
       unitSale: state.unitSale,
       weight: state.weight,
+      length: state.length,
+      width: state.width,
+      height: state.height,
       airRate: state.airRate,
       seaRate: state.seaRate,
       adBudget: state.adBudget,
@@ -36,9 +51,10 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
     })
     
     // Store the signature and compare on next render
-    if (prevNetProfitRef.current !== calculationSignature && prevNetProfitRef.current !== null) {
+    // Only increment counter if calculation is complete AND inputs have changed
+    if (isCalculationComplete && prevNetProfitRef.current !== calculationSignature && prevNetProfitRef.current !== null) {
       const updated = incrementFreeCalculations()
-      console.log('[v0] Calculation tracked. Remaining:', 10 - updated)
+      console.log('[v0] Complete calculation tracked. Remaining:', 10 - updated)
       
       // Check if user just exhausted their free calculations
       if (hasExhaustedFreeCalculations()) {
