@@ -1,11 +1,8 @@
 "use client"
 
-import { Info, Save, Check, Zap } from "lucide-react"
-import { useState, useEffect } from "react"
+import { Info, Save, Check } from "lucide-react"
+import { useState } from "react"
 import { useCalculator, formatCurrency } from "@/lib/calculator-store"
-import { useSecureCalculate } from "@/lib/secure-hooks"
-import { useSubscriptionStatus } from "@/lib/secure-hooks"
-import { TokenPurchaseModal } from "./token-purchase-modal"
 import { NativeAdTile } from "./native-ad-tile"
 
 interface DashboardPanelProps {
@@ -16,14 +13,7 @@ interface DashboardPanelProps {
 
 export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated = false }: DashboardPanelProps) {
   const { state, results } = useCalculator()
-  const { subscription, fetchSubscription } = useSubscriptionStatus()
   const [justSaved, setJustSaved] = useState(false)
-  const [showTokenModal, setShowTokenModal] = useState(false)
-
-  // Fetch subscription status on mount
-  useEffect(() => {
-    fetchSubscription()
-  }, [fetchSubscription])
 
   const handleSave = async () => {
     // If user is NOT authenticated, show signup gate instead of saving
@@ -31,12 +21,6 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
       console.log('[v0] Unauthenticated user trying to save - showing signup gate')
       // Parent component will handle this via onSaveDisabled
       onSaveDisabled?.()
-      return
-    }
-
-    // Check if out of tokens
-    if (subscription && subscription.remaining <= 0) {
-      setShowTokenModal(true)
       return
     }
 
@@ -49,10 +33,9 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
       })
 
       if (response.status === 402) {
-        // Out of tokens - show purchase modal
-        console.log('[v0] Insufficient tokens, showing purchase modal')
-        await fetchSubscription() // Refresh balance
-        setShowTokenModal(true)
+        // Subscription expired - redirect to upgrade
+        console.log('[v0] Subscription expired, showing signup gate')
+        onSaveDisabled?.()
         return
       }
 
@@ -63,16 +46,12 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
       // Success - show saved indicator
       setJustSaved(true)
       setTimeout(() => setJustSaved(false), 2000)
-      
-      // Refresh subscription to show updated token balance
-      await fetchSubscription()
     } catch (error) {
       console.error('[v0] Save error:', error)
     }
   }
 
   const canSaveProduct = state.unitCost > 0 && state.unitSale > 0
-  const isOutOfTokens = subscription && subscription.remaining <= 0
 
   // Calculate bar percentages
   const invPercent =
@@ -141,8 +120,6 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
                   ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
                   : !isAuthenticated
                   ? "bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 border border-blue-500/30"
-                  : isOutOfTokens
-                  ? "bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 border border-orange-500/30"
                   : "bg-white/10 hover:bg-white/20 text-white border border-white/20"
               }`}
             >
@@ -155,11 +132,6 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
                 <>
                   <Save className="w-4 h-4" />
                   Create Account to Save
-                </>
-              ) : isOutOfTokens ? (
-                <>
-                  <Zap className="w-4 h-4" />
-                  Buy Tokens
                 </>
               ) : (
                 <>
@@ -324,11 +296,7 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
         adDescription="Discover powerful e-commerce tools and resources that help you manage your store more efficiently and grow your sales."
       />
 
-      {/* Token Purchase Modal */}
-      <TokenPurchaseModal
-        open={showTokenModal}
-        onOpenChange={setShowTokenModal}
-      />
+
     </div>
   )
 }
