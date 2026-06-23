@@ -1,5 +1,5 @@
 // Free tier calculation tracking
-const FREE_TIER_LIMIT = 10
+export const FREE_TIER_LIMIT = 10
 const STORAGE_KEY = 'free_calculations_used'
 
 export function getFreeCalculationsUsed(): number {
