@@ -58,8 +58,10 @@ function CreateAccountContent() {
     setError('')
 
     try {
+      console.log('[v0] Creating account with payment reference:', reference)
+      
       // Create account with payment reference
-      const response = await fetch('/auth/sign-up', {
+      const response = await fetch('/api/auth/create-account', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -69,8 +71,10 @@ function CreateAccountContent() {
         }),
       })
 
+      const data = await response.json()
+      console.log('[v0] Account creation response:', { status: response.status, data })
+
       if (!response.ok) {
-        const data = await response.json()
         throw new Error(data.error || 'Failed to create account')
       }
 
@@ -81,7 +85,9 @@ function CreateAccountContent() {
         router.push('/')
       }, 2000)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create account')
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create account'
+      console.error('[v0] Account creation error:', errorMessage)
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
