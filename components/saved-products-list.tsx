@@ -1,9 +1,9 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useSavedProducts, useSubscriptionStatus } from "@/lib/secure-hooks"
+import { useSavedProducts } from "@/lib/secure-hooks"
 import { formatCurrency } from "@/lib/calculator-store"
-import { Lock, Trash2, ChevronDown, ChevronUp, Package } from "lucide-react"
+import { Trash2, ChevronDown, ChevronUp, Package } from "lucide-react"
 
 interface SavedProductsListProps {
   onUpgradeClick: () => void
@@ -11,23 +11,17 @@ interface SavedProductsListProps {
 
 export function SavedProductsList({ onUpgradeClick }: SavedProductsListProps) {
   const { products, isLoading, fetchProducts, deleteProduct } = useSavedProducts()
-  const { subscription, fetchSubscription } = useSubscriptionStatus()
   const [showAll, setShowAll] = useState(false)
 
-  // Load products and subscription on mount
+  // Load products on mount
   useEffect(() => {
     fetchProducts()
-    fetchSubscription()
-  }, [fetchProducts, fetchSubscription])
+  }, [fetchProducts])
 
   if (isLoading) return null
   if (products.length === 0) return null
 
-  const isPro = subscription?.isPro || false
-  const FREE_VISIBLE = 3
-  const visibleProducts = isPro || showAll ? products : products.slice(0, FREE_VISIBLE)
-  const hiddenCount = products.length - FREE_VISIBLE
-  const hasHidden = !isPro && hiddenCount > 0
+  const visibleProducts = products
 
   return (
     <div className="mt-8">
@@ -93,23 +87,7 @@ export function SavedProductsList({ onUpgradeClick }: SavedProductsListProps) {
           </table>
         </div>
 
-        {/* Hidden products indicator for free users */}
-        {hasHidden && (
-          <button
-            onClick={onUpgradeClick}
-            className="w-full py-4 px-4 bg-gradient-to-r from-slate-50 to-slate-100 border-t border-slate-100 flex items-center justify-center gap-3 hover:from-orange-50 hover:to-amber-50 transition-colors group"
-          >
-            <div className="flex items-center gap-2 text-slate-500 group-hover:text-orange-600 transition-colors">
-              <Lock className="w-4 h-4" />
-              <span className="font-medium">
-                +{hiddenCount} more saved product{hiddenCount !== 1 ? "s" : ""}
-              </span>
-            </div>
-            <span className="text-xs font-semibold px-2 py-1 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-full">
-              Upgrade to view
-            </span>
-          </button>
-        )}
+
 
         {/* Show more/less for Pro users */}
         {isPro && products.length > FREE_VISIBLE && (

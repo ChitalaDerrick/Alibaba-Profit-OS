@@ -1,29 +1,56 @@
 "use client"
 
-import { Info, Save, Check, Zap } from "lucide-react"
-import { useState, useEffect } from "react"
+import { Info, Save, Check } from "lucide-react"
+import { useState, useEffect, useRef } from "react"
 import { useCalculator, formatCurrency } from "@/lib/calculator-store"
-import { useSecureCalculate } from "@/lib/secure-hooks"
-import { useSubscriptionStatus } from "@/lib/secure-hooks"
-import { TokenPurchaseModal } from "./token-purchase-modal"
+import { incrementFreeCalculations, hasExhaustedFreeCalculations } from "@/lib/free-calculations"
+import { SaveProductModal } from "./save-product-modal"
 import { NativeAdTile } from "./native-ad-tile"
 
 interface DashboardPanelProps {
   onSaveDisabled?: () => void
   canSave?: boolean
   isAuthenticated?: boolean
+  onCalculationExhausted?: () => void
 }
 
-export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated = false }: DashboardPanelProps) {
+export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated = false, onCalculationExhausted }: DashboardPanelProps) {
   const { state, results } = useCalculator()
-  const { subscription, fetchSubscription } = useSubscriptionStatus()
   const [justSaved, setJustSaved] = useState(false)
-  const [showTokenModal, setShowTokenModal] = useState(false)
+  const [showSaveModal, setShowSaveModal] = useState(false)
+  const prevNetProfitRef = useRef<number | null>(null)
 
-  // Fetch subscription status on mount
+  // Track when a new calculation occurs
   useEffect(() => {
-    fetchSubscription()
-  }, [fetchSubscription])
+    if (isAuthenticated) return // Don't track for authenticated users
+    
+    // Create a unique calculation signature from all input values
+    const calculationSignature = JSON.stringify({
+      itemName: state.itemName,
+      unitCost: state.unitCost,
+      quantity: state.quantity,
+      unitSale: state.unitSale,
+      weight: state.weight,
+      airRate: state.airRate,
+      seaRate: state.seaRate,
+      adBudget: state.adBudget,
+      shippingMethod: state.shippingMethod,
+    })
+    
+    // Store the signature and compare on next render
+    if (prevNetProfitRef.current !== calculationSignature && prevNetProfitRef.current !== null) {
+      const updated = incrementFreeCalculations()
+      console.log('[v0] Calculation tracked. Remaining:', 10 - updated)
+      
+      // Check if user just exhausted their free calculations
+      if (hasExhaustedFreeCalculations()) {
+        console.log('[v0] Free calculations exhausted!')
+        onCalculationExhausted?.()
+      }
+    }
+    
+    prevNetProfitRef.current = calculationSignature
+  }, [state, isAuthenticated, onCalculationExhausted])
 
   const handleSave = async () => {
     // If user is NOT authenticated, show signup gate instead of saving
@@ -34,45 +61,17 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
       return
     }
 
-    // Check if out of tokens
-    if (subscription && subscription.remaining <= 0) {
-      setShowTokenModal(true)
-      return
-    }
+    // Show the save modal to get product name
+    setShowSaveModal(true)
+  }
 
-    try {
-      // Make the calculation/save request
-      const response = await fetch('/api/calculate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(state),
-      })
-
-      if (response.status === 402) {
-        // Out of tokens - show purchase modal
-        console.log('[v0] Insufficient tokens, showing purchase modal')
-        await fetchSubscription() // Refresh balance
-        setShowTokenModal(true)
-        return
-      }
-
-      if (!response.ok) {
-        throw new Error('Calculation failed')
-      }
-
-      // Success - show saved indicator
-      setJustSaved(true)
-      setTimeout(() => setJustSaved(false), 2000)
-      
-      // Refresh subscription to show updated token balance
-      await fetchSubscription()
-    } catch (error) {
-      console.error('[v0] Save error:', error)
-    }
+  const handleSaveSuccess = () => {
+    // Show success indicator
+    setJustSaved(true)
+    setTimeout(() => setJustSaved(false), 2000)
   }
 
   const canSaveProduct = state.unitCost > 0 && state.unitSale > 0
-  const isOutOfTokens = subscription && subscription.remaining <= 0
 
   // Calculate bar percentages
   const invPercent =
@@ -96,7 +95,13 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
   const isNegativeProfit = results.netProfit < 0
 
   return (
-    <div className="lg:col-span-8 space-y-6">
+    <>
+      <SaveProductModal 
+        isOpen={showSaveModal}
+        onClose={() => setShowSaveModal(false)}
+        onSuccess={handleSaveSuccess}
+      />
+      <div className="lg:col-span-8 space-y-6">
       {/* Main KPI Card */}
       <div className="bg-slate-900 rounded-[2.5rem] p-10 text-white relative overflow-hidden shadow-2xl">
         {/* Background Decor */}
@@ -141,8 +146,6 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
                   ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
                   : !isAuthenticated
                   ? "bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 border border-blue-500/30"
-                  : isOutOfTokens
-                  ? "bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 border border-orange-500/30"
                   : "bg-white/10 hover:bg-white/20 text-white border border-white/20"
               }`}
             >
@@ -155,11 +158,6 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
                 <>
                   <Save className="w-4 h-4" />
                   Create Account to Save
-                </>
-              ) : isOutOfTokens ? (
-                <>
-                  <Zap className="w-4 h-4" />
-                  Buy Tokens
                 </>
               ) : (
                 <>
@@ -316,6 +314,18 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
         </div>
       </div>
 
+      {/* Save Product Button - Show to authenticated users */}
+      {isAuthenticated && (
+        <button
+          onClick={handleSave}
+          className="w-full py-4 px-6 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-3 group"
+        >
+          <Save className="w-5 h-5 group-hover:animate-pulse" />
+          <span>{justSaved ? "Product Saved Successfully!" : "Save Product"}</span>
+          {justSaved && <Check className="w-5 h-5" />}
+        </button>
+      )}
+
       {/* Native Ad Tile - Show to unauthenticated users */}
       <NativeAdTile 
         isVisible={!isAuthenticated}
@@ -323,12 +333,7 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
         adTitle="Scale Your Business"
         adDescription="Discover powerful e-commerce tools and resources that help you manage your store more efficiently and grow your sales."
       />
-
-      {/* Token Purchase Modal */}
-      <TokenPurchaseModal
-        open={showTokenModal}
-        onOpenChange={setShowTokenModal}
-      />
     </div>
+    </>
   )
 }

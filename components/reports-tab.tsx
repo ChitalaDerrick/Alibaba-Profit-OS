@@ -1,15 +1,25 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Download, FileText, BarChart3, Loader } from "lucide-react"
+import { Download, FileText, BarChart3, Loader, Lock } from "lucide-react"
 import { ProjectsManager } from "./projects-manager"
 import { exportReportAsCSV, exportReportAsPDF } from "@/lib/export-utils"
+import { useSubscription } from "@/lib/subscription-hooks"
 
-export function ReportsTab() {
+interface ReportsTabProps {
+  isAuthenticated: boolean
+  onSignupClick?: () => void
+}
+
+export function ReportsTab({ isAuthenticated, onSignupClick }: ReportsTabProps) {
   const [selectedProjectId, setSelectedProjectId] = useState<string>("")
   const [isExporting, setIsExporting] = useState(false)
   const [exportFormat, setExportFormat] = useState<'pdf' | 'csv' | null>(null)
   const [projects, setProjects] = useState<any[]>([])
+  const { subscription } = useSubscription()
+  
+  // Check if user has paid subscription
+  const hasAccessToReports = subscription?.isActive && subscription?.type !== 'free'
 
   useEffect(() => {
     fetchProjects()
@@ -31,6 +41,63 @@ export function ReportsTab() {
   }
 
   const selectedProject = projects.find(p => p.id === selectedProjectId)
+
+  // Show paywall if user doesn't have access
+  if (!isAuthenticated) {
+    return (
+      <div className="max-w-4xl">
+        <div className="relative">
+          {/* Blurred content */}
+          <div className="blur-sm pointer-events-none">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+              <div className="lg:col-span-1">
+                <div className="bg-white/80 rounded-2xl border border-slate-200 p-4 h-64"></div>
+              </div>
+              <div className="lg:col-span-3 space-y-6">
+                <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl border border-blue-200 p-6 h-24"></div>
+                <div className="bg-white/80 rounded-2xl border border-slate-200 p-6 h-48"></div>
+              </div>
+            </div>
+          </div>
+
+          {/* CTA Overlay */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-sm rounded-2xl">
+            <div className="text-center">
+              <Lock className="w-12 h-12 text-white mb-3 mx-auto" />
+              <h3 className="text-lg font-bold text-white mb-2">Generate Professional Reports</h3>
+              <p className="text-white/80 text-sm mb-4 max-w-xs">
+                Export your calculations and analysis as PDF or CSV. Create an account to get started.
+              </p>
+              <button
+                onClick={onSignupClick}
+                className="px-6 py-2.5 bg-white text-slate-900 font-semibold rounded-lg hover:bg-slate-100 transition-colors"
+              >
+                Create Account
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!hasAccessToReports) {
+    return (
+      <div className="max-w-4xl">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-200 shadow-sm p-12 text-center">
+          <Lock className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-slate-900 mb-2">Reports Require an Active Subscription</h3>
+          <p className="text-slate-500 mb-6">Upgrade to unlock professional report generation with PDF and CSV exports.</p>
+          <button
+            onClick={onSignupClick}
+            className="px-6 py-2.5 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition-colors"
+          >
+            View Plans
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   const handleExport = async (format: 'pdf' | 'csv') => {
     if (!selectedProjectId) return
