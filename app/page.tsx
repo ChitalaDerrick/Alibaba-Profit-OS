@@ -8,6 +8,7 @@ import { SavedProductsTab } from "@/components/saved-products-tab"
 import { ReportsTab } from "@/components/reports-tab"
 import { AffiliateRecommendations } from "@/components/affiliate-recommendations"
 import { SignupGateModal } from "@/components/signup-gate-modal"
+import { FreeCalculationsCounter } from "@/components/free-calculations-counter"
 import { useSubscription } from "@/lib/subscription-hooks"
 import { useCalculator } from "@/lib/calculator-store"
 import { useAuth } from "@/lib/auth-hooks"
@@ -116,12 +117,20 @@ export default function Home() {
         {/* Calculator Tab */}
         {activeTab === 'calculator' && (
           <>
+            {/* Free calculations counter for unauthenticated users */}
+            {!isAuthenticated && (
+              <div className="max-w-4xl mx-auto mb-6">
+                <FreeCalculationsCounter isAuthenticated={isAuthenticated} />
+              </div>
+            )}
+
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
               <InputPanel />
               <DashboardPanel 
                 canSave={isAuthenticated}
                 onSaveDisabled={() => setShowSignupGate(true)}
                 isAuthenticated={isAuthenticated}
+                onCalculationExhausted={() => setShowSignupGate(true)}
               />
             </div>
           </>

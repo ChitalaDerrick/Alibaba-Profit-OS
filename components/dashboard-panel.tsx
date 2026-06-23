@@ -1,19 +1,39 @@
 "use client"
 
 import { Info, Save, Check } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useCalculator, formatCurrency } from "@/lib/calculator-store"
+import { incrementFreeCalculations, hasExhaustedFreeCalculations } from "@/lib/free-calculations"
 import { NativeAdTile } from "./native-ad-tile"
 
 interface DashboardPanelProps {
   onSaveDisabled?: () => void
   canSave?: boolean
   isAuthenticated?: boolean
+  onCalculationExhausted?: () => void
 }
 
-export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated = false }: DashboardPanelProps) {
+export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated = false, onCalculationExhausted }: DashboardPanelProps) {
   const { state, results } = useCalculator()
   const [justSaved, setJustSaved] = useState(false)
+  const prevNetProfitRef = useRef<number | null>(null)
+
+  // Track when a new calculation occurs
+  useEffect(() => {
+    if (isAuthenticated) return // Don't track for authenticated users
+    
+    // Check if profit value changed (indicates new calculation)
+    if (prevNetProfitRef.current !== null && results.netProfit !== prevNetProfitRef.current) {
+      const updated = incrementFreeCalculations()
+      
+      // Check if user just exhausted their free calculations
+      if (hasExhaustedFreeCalculations()) {
+        onCalculationExhausted?.()
+      }
+    }
+    
+    prevNetProfitRef.current = results.netProfit
+  }, [results.netProfit, isAuthenticated, onCalculationExhausted])
 
   const handleSave = async () => {
     // If user is NOT authenticated, show signup gate instead of saving
