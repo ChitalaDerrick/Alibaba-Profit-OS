@@ -136,9 +136,9 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
   const isNegativeProfit = results.netProfit < 0
 
   return (
-    <div className="lg:col-span-8 space-y-6">
+    <div className="lg:col-span-8 space-y-6 sm:space-y-7">
       {/* Main KPI Card */}
-      <div className="bg-slate-900 rounded-[2.5rem] p-10 text-white relative overflow-hidden shadow-2xl">
+      <div className="bg-slate-900 rounded-2xl sm:rounded-[2.5rem] p-6 sm:p-10 text-white relative overflow-hidden shadow-2xl">
         {/* Background Decor */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/20 blur-[100px] rounded-full -mr-20 -mt-20" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-orange-600/10 blur-[80px] rounded-full -ml-10 -mb-10" />

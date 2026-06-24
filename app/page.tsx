@@ -51,12 +51,12 @@ export default function Home() {
     <div className="flex flex-col min-h-svh w-full bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50">
       <Navbar />
       
-      <main className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-8 flex-1 w-full">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-5 sm:py-8 flex-1 w-full">
         {/* Tab Navigation */}
-        <div className="flex gap-1 sm:gap-2 mb-6 sm:mb-8 border-b border-slate-200 overflow-x-auto -mx-3 sm:-mx-6 px-3 sm:px-6">
+        <div className="flex gap-1 sm:gap-2 mb-7 sm:mb-8 border-b border-slate-200 overflow-x-auto -mx-4 sm:-mx-6 px-4 sm:px-6">
           <button
             onClick={() => setActiveTab('calculator')}
-            className={`px-3 sm:px-4 py-3 font-semibold text-xs sm:text-sm transition-all duration-200 relative whitespace-nowrap ${
+            className={`px-3 sm:px-4 py-3.5 font-semibold text-xs sm:text-sm transition-all duration-200 relative whitespace-nowrap min-h-[44px] flex items-center ${
               activeTab === 'calculator'
                 ? 'text-slate-900'
                 : 'text-slate-500 hover:text-slate-700'
@@ -69,7 +69,7 @@ export default function Home() {
           </button>
           <button
             onClick={() => setActiveTab('partners')}
-            className={`px-3 sm:px-4 py-3 font-semibold text-xs sm:text-sm transition-all duration-200 relative whitespace-nowrap ${
+            className={`px-3 sm:px-4 py-3.5 font-semibold text-xs sm:text-sm transition-all duration-200 relative whitespace-nowrap min-h-[44px] flex items-center ${
               activeTab === 'partners'
                 ? 'text-slate-900'
                 : 'text-slate-500 hover:text-slate-700'
@@ -83,7 +83,7 @@ export default function Home() {
           </button>
           <button
             onClick={() => handleTabClick('saved')}
-            className={`px-3 sm:px-4 py-3 font-semibold text-xs sm:text-sm transition-all duration-200 relative flex items-center gap-1 sm:gap-2 whitespace-nowrap ${
+            className={`px-3 sm:px-4 py-3.5 font-semibold text-xs sm:text-sm transition-all duration-200 relative flex items-center gap-1 sm:gap-2 whitespace-nowrap min-h-[44px] ${
               activeTab === 'saved'
                 ? 'text-slate-900'
                 : hasFullAccess
@@ -100,7 +100,7 @@ export default function Home() {
           </button>
           <button
             onClick={() => handleTabClick('reports')}
-            className={`px-3 sm:px-4 py-3 font-semibold text-xs sm:text-sm transition-all duration-200 relative flex items-center gap-1 sm:gap-2 whitespace-nowrap ${
+            className={`px-3 sm:px-4 py-3.5 font-semibold text-xs sm:text-sm transition-all duration-200 relative flex items-center gap-1 sm:gap-2 whitespace-nowrap min-h-[44px] ${
               activeTab === 'reports'
                 ? 'text-slate-900'
                 : hasFullAccess

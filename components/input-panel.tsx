@@ -11,7 +11,7 @@ function InputPill({
 }) {
   return (
     <div
-      className={`bg-white rounded-2xl p-4 border-[1.5px] border-slate-200 transition-all focus-within:border-indigo-500 focus-within:shadow-[0_0_0_4px_rgba(99,102,241,0.1)] ${className}`}
+      className={`bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 border-[1.5px] border-slate-150 shadow-sm transition-all focus-within:border-indigo-400 focus-within:shadow-[0_0_0_3px_rgba(99,102,241,0.08)] ${className}`}
     >
       {children}
     </div>
@@ -28,12 +28,12 @@ function SectionCard({
   children: React.ReactNode
 }) {
   return (
-    <div className="bg-white/80 backdrop-blur-xl border border-white/30 shadow-[0_4px_24px_-2px_rgba(0,0,0,0.05)] rounded-3xl p-6">
+    <div className="bg-white/95 backdrop-blur-xl border border-slate-100 shadow-sm rounded-2xl sm:rounded-3xl p-5 sm:p-6">
       <div className="flex items-center gap-2 mb-6">
-        <span className="w-6 h-6 flex items-center justify-center bg-slate-900 text-white text-[10px] font-black rounded-full">
+        <span className="w-7 h-7 flex items-center justify-center bg-slate-900 text-white text-[11px] font-black rounded-full">
           {number}
         </span>
-        <h2 className="text-xs font-black uppercase tracking-widest text-slate-400">
+        <h2 className="text-xs font-black uppercase tracking-widest text-slate-500">
           {title}
         </h2>
       </div>
@@ -50,12 +50,12 @@ export function InputPanel({ onCalculate }: { onCalculate?: () => void }) {
   }
 
   return (
-    <div className="lg:col-span-4 space-y-6">
+    <div className="lg:col-span-4 space-y-5 sm:space-y-6">
       {/* 01 Product Info */}
       <SectionCard number="01" title="Inventory Specs">
         <div className="space-y-5">
           <InputPill>
-            <label className="block text-[10px] font-black text-slate-400 uppercase mb-1">
+            <label className="block text-[11px] sm:text-[10px] font-black text-slate-500 uppercase mb-2">
               Product Name
             </label>
             <input
