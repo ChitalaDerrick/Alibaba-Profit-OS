@@ -144,8 +144,8 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-orange-600/10 blur-[80px] rounded-full -ml-10 -mb-10" />
 
         <div className="relative z-10">
-          <div className="flex justify-between items-start mb-12">
-            <div>
+          <div className="flex flex-col md:flex-row md:justify-between md:items-start mb-12 gap-4 md:gap-6">
+            <div className="flex-1">
               <div className="text-xs font-black tracking-widest text-blue-400 uppercase mb-2">
                 {state.itemName || "PRODUCT ANALYSIS"}
               </div>
@@ -153,7 +153,7 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
                 Projected Net Profit
               </h3>
               <div
-                className={`text-7xl font-extrabold tracking-tighter mt-2 ${
+                className={`text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tighter mt-2 ${
                   isNegativeProfit ? "text-red-400" : "text-white"
                 }`}
               >
@@ -161,7 +161,7 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
               </div>
             </div>
             <div
-              className={`px-6 py-3 rounded-2xl font-black text-sm uppercase tracking-wider ${
+              className={`px-4 sm:px-6 py-2 sm:py-3 rounded-2xl font-black text-xs sm:text-sm uppercase tracking-wider whitespace-nowrap ${
                 isLowMargin
                   ? "bg-red-500/10 border border-red-500/20 text-red-400"
                   : "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
@@ -203,34 +203,34 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
             </button>
           )}
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="bg-white/5 border border-white/10 rounded-3xl p-5">
-              <p className="text-[10px] font-black text-slate-500 uppercase mb-1">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+            <div className="bg-white/5 border border-white/10 rounded-2xl sm:rounded-3xl p-3 sm:p-5">
+              <p className="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase mb-1 line-clamp-1">
                 Gross Sales
               </p>
-              <p className="text-xl font-bold">
+              <p className="text-sm sm:text-xl font-bold">
                 {formatCurrency(results.totalSales)}
               </p>
             </div>
-            <div className="bg-white/5 border border-white/10 rounded-3xl p-5">
-              <p className="text-[10px] font-black text-slate-500 uppercase mb-1">
+            <div className="bg-white/5 border border-white/10 rounded-2xl sm:rounded-3xl p-3 sm:p-5">
+              <p className="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase mb-1 line-clamp-1">
                 Markup %
               </p>
-              <p className="text-xl font-bold">{results.markup.toFixed(1)}%</p>
+              <p className="text-sm sm:text-xl font-bold">{results.markup.toFixed(1)}%</p>
             </div>
-            <div className="bg-white/5 border border-white/10 rounded-3xl p-5">
-              <p className="text-[10px] font-black text-slate-500 uppercase mb-1">
+            <div className="bg-white/5 border border-white/10 rounded-2xl sm:rounded-3xl p-3 sm:p-5">
+              <p className="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase mb-1 line-clamp-1">
                 Shipping Total
               </p>
-              <p className="text-xl font-bold">
+              <p className="text-sm sm:text-xl font-bold">
                 {formatCurrency(results.totalShipping)}
               </p>
             </div>
-            <div className="bg-white/5 border border-white/10 rounded-3xl p-5">
-              <p className="text-[10px] font-black text-slate-500 uppercase mb-1">
+            <div className="bg-white/5 border border-white/10 rounded-2xl sm:rounded-3xl p-3 sm:p-5">
+              <p className="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase mb-1 line-clamp-1">
                 Unit B-Even
               </p>
-              <p className="text-xl font-bold">
+              <p className="text-sm sm:text-xl font-bold">
                 {formatCurrency(results.breakEven)}
               </p>
             </div>
@@ -283,52 +283,52 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
       </div>
 
       {/* Secondary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white/80 backdrop-blur-xl border border-white/30 shadow-[0_4px_24px_-2px_rgba(0,0,0,0.05)] rounded-[2rem] p-6 flex flex-col justify-between h-40">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
+        <div className="bg-white/80 backdrop-blur-xl border border-white/30 shadow-[0_4px_24px_-2px_rgba(0,0,0,0.05)] rounded-xl sm:rounded-[2rem] p-4 sm:p-6 flex flex-col justify-between">
+          <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">
             Inventory Load
           </p>
           <div>
-            <p className="text-3xl font-extrabold text-slate-800">
+            <p className="text-2xl sm:text-3xl font-extrabold text-slate-800">
               {formatCurrency(results.totalBuying)}
             </p>
-            <p className="text-[10px] text-slate-400 font-bold mt-1">
+            <p className="text-[9px] sm:text-[10px] text-slate-400 font-bold mt-1">
               Total purchasing cost
             </p>
           </div>
         </div>
-        <div className="bg-white/80 backdrop-blur-xl border border-white/30 shadow-[0_4px_24px_-2px_rgba(0,0,0,0.05)] rounded-[2rem] p-6 flex flex-col justify-between h-40">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+        <div className="bg-white/80 backdrop-blur-xl border border-white/30 shadow-[0_4px_24px_-2px_rgba(0,0,0,0.05)] rounded-xl sm:rounded-[2rem] p-4 sm:p-6 flex flex-col justify-between">
+          <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">
             Logistic Metrics
           </p>
           <div>
             <div className="space-y-2">
               <div>
                 <p className="text-xs text-slate-500 font-semibold">Total Shipping</p>
-                <p className="text-2xl font-extrabold text-slate-800">
+                <p className="text-lg sm:text-2xl font-extrabold text-slate-800">
                   {formatCurrency(results.totalShipping)}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-slate-500 font-semibold">Per Unit ({state.shippingMethod})</p>
-                <p className="text-lg font-bold text-slate-700">
+                <p className="text-[11px] sm:text-xs text-slate-500 font-semibold line-clamp-1">Per Unit ({state.shippingMethod})</p>
+                <p className="text-base sm:text-lg font-bold text-slate-700">
                   {formatCurrency(results.unitShipCost)}
                 </p>
               </div>
             </div>
           </div>
         </div>
-        <div className="bg-white/80 backdrop-blur-xl border border-white/30 shadow-[0_4px_24px_-2px_rgba(0,0,0,0.05)] rounded-[2rem] p-6 flex flex-col justify-between h-40">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+        <div className="bg-white/80 backdrop-blur-xl border border-white/30 shadow-[0_4px_24px_-2px_rgba(0,0,0,0.05)] rounded-xl sm:rounded-[2rem] p-4 sm:p-6 flex flex-col justify-between">
+          <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">
             Load Volume
           </p>
           <div>
-            <p className="text-3xl font-extrabold text-slate-800">
+            <p className="text-2xl sm:text-3xl font-extrabold text-slate-800">
               {state.shippingMethod === "AIR"
                 ? results.totalLoad.toFixed(2)
                 : results.totalLoad.toFixed(4)}
             </p>
-            <p className="text-[10px] text-slate-400 font-bold mt-1">
+            <p className="text-[9px] sm:text-[10px] text-slate-400 font-bold mt-1">
               Total {state.shippingMethod === "AIR" ? "KG" : "CBM"}
             </p>
           </div>
@@ -336,13 +336,13 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
       </div>
 
       {/* Tips & Meta */}
-      <div className="bg-blue-600 rounded-[2rem] p-8 text-white flex flex-col md:flex-row items-center gap-6 shadow-xl shadow-blue-100">
-        <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center shrink-0">
-          <Info className="w-8 h-8" />
+      <div className="bg-blue-600 rounded-xl sm:rounded-[2rem] p-4 sm:p-8 text-white flex flex-col sm:flex-row items-center gap-3 sm:gap-6 shadow-xl shadow-blue-100">
+        <div className="w-12 sm:w-16 h-12 sm:h-16 bg-white/20 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0">
+          <Info className="w-6 sm:w-8 h-6 sm:h-8" />
         </div>
         <div>
-          <h4 className="font-bold text-lg">Pro Profit Tip</h4>
-          <p className="text-white/80 text-sm leading-relaxed">
+          <h4 className="font-bold text-base sm:text-lg">Pro Profit Tip</h4>
+          <p className="text-white/80 text-xs sm:text-sm leading-relaxed">
             Aim for a minimum of <strong>30% margin</strong> to cover hidden
             operational costs like returns, broken items, and transaction fees.
           </p>
