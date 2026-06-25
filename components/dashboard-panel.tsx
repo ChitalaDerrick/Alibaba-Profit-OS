@@ -153,7 +153,7 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
                 Projected Net Profit
               </h3>
               <div
-                className={`text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tighter mt-2 ${
+                className={`text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tighter mt-2 leading-tight break-words overflow-hidden ${
                   isNegativeProfit ? "text-red-400" : "text-white"
                 }`}
               >
@@ -204,33 +204,33 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
           )}
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-            <div className="bg-white/5 border border-white/10 rounded-2xl sm:rounded-3xl p-3 sm:p-5">
+            <div className="bg-white/5 border border-white/10 rounded-2xl sm:rounded-3xl p-3 sm:p-5 min-w-0">
               <p className="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase mb-1 line-clamp-1">
                 Gross Sales
               </p>
-              <p className="text-sm sm:text-xl font-bold">
+              <p className="text-xs sm:text-sm md:text-base lg:text-lg font-bold truncate">
                 {formatCurrency(results.totalSales)}
               </p>
             </div>
-            <div className="bg-white/5 border border-white/10 rounded-2xl sm:rounded-3xl p-3 sm:p-5">
+            <div className="bg-white/5 border border-white/10 rounded-2xl sm:rounded-3xl p-3 sm:p-5 min-w-0">
               <p className="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase mb-1 line-clamp-1">
                 Markup %
               </p>
-              <p className="text-sm sm:text-xl font-bold">{results.markup.toFixed(1)}%</p>
+              <p className="text-xs sm:text-sm md:text-base lg:text-lg font-bold truncate">{results.markup.toFixed(1)}%</p>
             </div>
-            <div className="bg-white/5 border border-white/10 rounded-2xl sm:rounded-3xl p-3 sm:p-5">
+            <div className="bg-white/5 border border-white/10 rounded-2xl sm:rounded-3xl p-3 sm:p-5 min-w-0">
               <p className="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase mb-1 line-clamp-1">
                 Shipping Total
               </p>
-              <p className="text-sm sm:text-xl font-bold">
+              <p className="text-xs sm:text-sm md:text-base lg:text-lg font-bold truncate">
                 {formatCurrency(results.totalShipping)}
               </p>
             </div>
-            <div className="bg-white/5 border border-white/10 rounded-2xl sm:rounded-3xl p-3 sm:p-5">
+            <div className="bg-white/5 border border-white/10 rounded-2xl sm:rounded-3xl p-3 sm:p-5 min-w-0">
               <p className="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase mb-1 line-clamp-1">
                 Unit B-Even
               </p>
-              <p className="text-sm sm:text-xl font-bold">
+              <p className="text-xs sm:text-sm md:text-base lg:text-lg font-bold truncate">
                 {formatCurrency(results.breakEven)}
               </p>
             </div>
@@ -284,12 +284,12 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
 
       {/* Secondary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
-        <div className="bg-white/80 backdrop-blur-xl border border-white/30 shadow-[0_4px_24px_-2px_rgba(0,0,0,0.05)] rounded-xl sm:rounded-[2rem] p-4 sm:p-6 flex flex-col justify-between">
+        <div className="bg-white/80 backdrop-blur-xl border border-white/30 shadow-[0_4px_24px_-2px_rgba(0,0,0,0.05)] rounded-xl sm:rounded-[2rem] p-4 sm:p-6 flex flex-col justify-between min-w-0">
           <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">
             Inventory Load
           </p>
-          <div>
-            <p className="text-2xl sm:text-3xl font-extrabold text-slate-800">
+          <div className="min-w-0">
+            <p className="text-lg sm:text-2xl md:text-3xl font-extrabold text-slate-800 truncate">
               {formatCurrency(results.totalBuying)}
             </p>
             <p className="text-[9px] sm:text-[10px] text-slate-400 font-bold mt-1">
@@ -297,33 +297,33 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
             </p>
           </div>
         </div>
-        <div className="bg-white/80 backdrop-blur-xl border border-white/30 shadow-[0_4px_24px_-2px_rgba(0,0,0,0.05)] rounded-xl sm:rounded-[2rem] p-4 sm:p-6 flex flex-col justify-between">
+        <div className="bg-white/80 backdrop-blur-xl border border-white/30 shadow-[0_4px_24px_-2px_rgba(0,0,0,0.05)] rounded-xl sm:rounded-[2rem] p-4 sm:p-6 flex flex-col justify-between min-w-0">
           <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">
             Logistic Metrics
           </p>
-          <div>
+          <div className="min-w-0">
             <div className="space-y-2">
-              <div>
+              <div className="min-w-0">
                 <p className="text-xs text-slate-500 font-semibold">Total Shipping</p>
-                <p className="text-lg sm:text-2xl font-extrabold text-slate-800">
+                <p className="text-sm sm:text-lg md:text-2xl font-extrabold text-slate-800 truncate">
                   {formatCurrency(results.totalShipping)}
                 </p>
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-[11px] sm:text-xs text-slate-500 font-semibold line-clamp-1">Per Unit ({state.shippingMethod})</p>
-                <p className="text-base sm:text-lg font-bold text-slate-700">
+                <p className="text-xs sm:text-base md:text-lg font-bold text-slate-700 truncate">
                   {formatCurrency(results.unitShipCost)}
                 </p>
               </div>
             </div>
           </div>
         </div>
-        <div className="bg-white/80 backdrop-blur-xl border border-white/30 shadow-[0_4px_24px_-2px_rgba(0,0,0,0.05)] rounded-xl sm:rounded-[2rem] p-4 sm:p-6 flex flex-col justify-between">
+        <div className="bg-white/80 backdrop-blur-xl border border-white/30 shadow-[0_4px_24px_-2px_rgba(0,0,0,0.05)] rounded-xl sm:rounded-[2rem] p-4 sm:p-6 flex flex-col justify-between min-w-0">
           <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">
             Load Volume
           </p>
-          <div>
-            <p className="text-2xl sm:text-3xl font-extrabold text-slate-800">
+          <div className="min-w-0">
+            <p className="text-lg sm:text-2xl md:text-3xl font-extrabold text-slate-800 truncate">
               {state.shippingMethod === "AIR"
                 ? results.totalLoad.toFixed(2)
                 : results.totalLoad.toFixed(4)}
