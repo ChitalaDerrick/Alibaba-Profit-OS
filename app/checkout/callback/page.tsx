@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Loader, AlertCircle, CheckCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { createClient } from '@supabase/supabase-js'
 
 function PaymentCallbackContent() {
   const searchParams = useSearchParams()
@@ -13,6 +14,7 @@ function PaymentCallbackContent() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
   const [error, setError] = useState('')
   const [paymentData, setPaymentData] = useState<any>(null)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
 
   useEffect(() => {
     if (!reference) {
@@ -26,10 +28,18 @@ function PaymentCallbackContent() {
 
   const verifyPayment = async () => {
     try {
+      // First check if user is already authenticated
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      )
+      
+      const { data: { user } } = await supabase.auth.getUser()
+      
       const response = await fetch('/api/subscriptions/verify-payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reference }),
+        body: JSON.stringify({ reference, userId: user?.id }),
       })
 
       const data = await response.json()
@@ -40,11 +50,20 @@ function PaymentCallbackContent() {
 
       setPaymentData(data)
       setStatus('success')
+      setIsAuthenticated(!!user)
 
-      // Redirect to create account page after 2 seconds
+      // If user is authenticated, apply subscription and redirect to home
+      // If not, redirect to create account
+      const redirectDelay = 2000
       setTimeout(() => {
-        router.push(`/checkout/create-account?reference=${reference}`)
-      }, 2000)
+        if (user?.id) {
+          console.log('[v0] User already authenticated, redirecting to home')
+          router.push('/')
+        } else {
+          console.log('[v0] User not authenticated, redirecting to create account')
+          router.push(`/checkout/create-account?reference=${reference}`)
+        }
+      }, redirectDelay)
     } catch (err) {
       setStatus('error')
       setError(err instanceof Error ? err.message : 'Payment verification failed')
@@ -97,7 +116,10 @@ function PaymentCallbackContent() {
           <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-slate-900 mb-2">Payment Successful!</h1>
           <p className="text-slate-600 mb-6">
-            Your payment has been confirmed. Redirecting to create your account...
+            Your payment has been confirmed.{' '}
+            {isAuthenticated 
+              ? 'Activating your subscription and redirecting...' 
+              : 'Redirecting to create your account...'}
           </p>
           <div className="flex justify-center">
             <Loader className="w-5 h-5 text-blue-500 animate-spin" />

@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { AlertCircle, CheckCircle, Eye, EyeOff, Loader } from 'lucide-react'
+import { createClient } from '@supabase/supabase-js'
 
 function CreateAccountContent() {
   const searchParams = useSearchParams()
@@ -18,11 +19,38 @@ function CreateAccountContent() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const [isChecking, setIsChecking] = useState(true)
 
   useEffect(() => {
-    if (!reference) {
-      router.push('/')
+    const checkAuth = async () => {
+      try {
+        const supabase = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        )
+        
+        const { data: { user } } = await supabase.auth.getUser()
+        
+        // If user is already authenticated, redirect home
+        if (user) {
+          console.log('[v0] User already authenticated, redirecting to home')
+          router.push('/')
+          return
+        }
+        
+        if (!reference) {
+          router.push('/')
+          return
+        }
+        
+        setIsChecking(false)
+      } catch (err) {
+        console.error('[v0] Auth check error:', err)
+        setIsChecking(false)
+      }
     }
+    
+    checkAuth()
   }, [reference, router])
 
   const validateForm = () => {
@@ -91,6 +119,19 @@ function CreateAccountContent() {
     } finally {
       setLoading(false)
     }
+  }
+
+  if (isChecking) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center p-4">
+        <div className="max-w-md w-full">
+          <div className="bg-white rounded-3xl shadow-2xl p-8 text-center">
+            <Loader className="w-12 h-12 text-blue-500 mx-auto mb-4 animate-spin" />
+            <p className="text-slate-600">Checking your account...</p>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   if (success) {
