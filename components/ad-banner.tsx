@@ -12,7 +12,7 @@ export function AdBanner() {
                 Free Trial Active
               </p>
               <p className="text-xs text-slate-500 truncate">
-                Explore our profit calculator with 70 free calculations
+                Explore our profit calculator with 100 free calculations
               </p>
             </div>
           </div>

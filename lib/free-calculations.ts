@@ -1,5 +1,5 @@
 // Free tier calculation tracking
-export const FREE_TIER_LIMIT = 10
+export const FREE_TIER_LIMIT = 100
 const STORAGE_KEY = 'free_calculations_used'
 const UPDATE_EVENT = 'freeCalculationsUpdated'
 
