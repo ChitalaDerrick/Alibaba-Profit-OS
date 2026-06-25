@@ -2,7 +2,7 @@
 
 import { Info, Save, Check } from "lucide-react"
 import { useState, useEffect, useRef } from "react"
-import { useCalculator, formatCurrency } from "@/lib/calculator-store"
+import { useCalculator, formatCurrency, formatCompactNumber } from "@/lib/calculator-store"
 import { incrementFreeCalculations, hasExhaustedFreeCalculations } from "@/lib/free-calculations"
 import { NativeAdTile } from "./native-ad-tile"
 
@@ -209,7 +209,8 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
                 Gross Sales
               </p>
               <p className="text-xs sm:text-sm md:text-base lg:text-lg font-bold truncate">
-                {formatCurrency(results.totalSales)}
+                <span className="md:hidden">{formatCompactNumber(results.totalSales)}</span>
+                <span className="hidden md:inline">{formatCurrency(results.totalSales)}</span>
               </p>
             </div>
             <div className="bg-white/5 border border-white/10 rounded-2xl sm:rounded-3xl p-3 sm:p-5 min-w-0">
@@ -223,7 +224,8 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
                 Shipping Total
               </p>
               <p className="text-xs sm:text-sm md:text-base lg:text-lg font-bold truncate">
-                {formatCurrency(results.totalShipping)}
+                <span className="md:hidden">{formatCompactNumber(results.totalShipping)}</span>
+                <span className="hidden md:inline">{formatCurrency(results.totalShipping)}</span>
               </p>
             </div>
             <div className="bg-white/5 border border-white/10 rounded-2xl sm:rounded-3xl p-3 sm:p-5 min-w-0">
@@ -231,7 +233,8 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
                 Unit B-Even
               </p>
               <p className="text-xs sm:text-sm md:text-base lg:text-lg font-bold truncate">
-                {formatCurrency(results.breakEven)}
+                <span className="md:hidden">{formatCompactNumber(results.breakEven)}</span>
+                <span className="hidden md:inline">{formatCurrency(results.breakEven)}</span>
               </p>
             </div>
           </div>
@@ -290,7 +293,8 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
           </p>
           <div className="min-w-0">
             <p className="text-lg sm:text-2xl md:text-3xl font-extrabold text-slate-800 truncate">
-              {formatCurrency(results.totalBuying)}
+              <span className="md:hidden">{formatCompactNumber(results.totalBuying)}</span>
+              <span className="hidden md:inline">{formatCurrency(results.totalBuying)}</span>
             </p>
             <p className="text-[9px] sm:text-[10px] text-slate-400 font-bold mt-1">
               Total purchasing cost
@@ -306,13 +310,15 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
               <div className="min-w-0">
                 <p className="text-xs text-slate-500 font-semibold">Total Shipping</p>
                 <p className="text-sm sm:text-lg md:text-2xl font-extrabold text-slate-800 truncate">
-                  {formatCurrency(results.totalShipping)}
+                  <span className="md:hidden">{formatCompactNumber(results.totalShipping)}</span>
+                  <span className="hidden md:inline">{formatCurrency(results.totalShipping)}</span>
                 </p>
               </div>
               <div className="min-w-0">
                 <p className="text-[11px] sm:text-xs text-slate-500 font-semibold line-clamp-1">Per Unit ({state.shippingMethod})</p>
                 <p className="text-xs sm:text-base md:text-lg font-bold text-slate-700 truncate">
-                  {formatCurrency(results.unitShipCost)}
+                  <span className="md:hidden">{formatCompactNumber(results.unitShipCost)}</span>
+                  <span className="hidden md:inline">{formatCurrency(results.unitShipCost)}</span>
                 </p>
               </div>
             </div>
