@@ -158,3 +158,15 @@ function calculateResults(state: CalculatorState): CalculatedResults {
 export function formatCurrency(num: number): string {
   return Math.round(num).toLocaleString()
 }
+
+export function formatCompactNumber(num: number): string {
+  const absNum = Math.abs(num)
+  
+  if (absNum >= 1_000_000) {
+    return (num / 1_000_000).toLocaleString('en-US', { maximumFractionDigits: 1 }) + 'M'
+  } else if (absNum >= 1_000) {
+    return (num / 1_000).toLocaleString('en-US', { maximumFractionDigits: 1 }) + 'K'
+  }
+  
+  return Math.round(num).toLocaleString()
+}

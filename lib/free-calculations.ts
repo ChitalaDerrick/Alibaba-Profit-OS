@@ -1,7 +1,36 @@
 // Free tier calculation tracking
-export const FREE_TIER_LIMIT = 10
+export const FREE_TIER_LIMIT = 100
 const STORAGE_KEY = 'free_calculations_used'
 const UPDATE_EVENT = 'freeCalculationsUpdated'
+const CALCULATION_DEBOUNCE_MS = 3000 // Wait 3 seconds before counting a calculation
+
+// Track pending calculations to debounce
+let pendingCalculationTimeout: NodeJS.Timeout | null = null
+let lastCalculationSignature: string | null = null
+
+// A calculation is complete when user has entered shipping information
+// For AIR: weight > 0
+// For SEA: length > 0 && width > 0 && height > 0
+export function isCalculationComplete(
+  unitCost: number,
+  unitSale: number,
+  quantity: number,
+  shippingMethod: "AIR" | "SEA",
+  weight: number = 0,
+  length: number = 0,
+  width: number = 0,
+  height: number = 0
+): boolean {
+  // Must have basic product info
+  const hasBasicInfo = unitCost > 0 && unitSale > 0 && quantity > 0
+  
+  // Must have shipping info based on method
+  const hasShippingInfo =
+    (shippingMethod === "AIR" && weight > 0) ||
+    (shippingMethod === "SEA" && length > 0 && width > 0 && height > 0)
+  
+  return hasBasicInfo && hasShippingInfo
+}
 
 // Custom event for notifying components of updates within the same tab
 let updateListeners: (() => void)[] = []
@@ -42,6 +71,37 @@ export function incrementFreeCalculations(): number {
   notifyUpdate()
   
   return next
+}
+
+// Debounced version: Wait 3 seconds after calculation is complete before counting it
+// This allows users to explore and test without feeling rushed
+export function debouncedIncrementFreeCalculations(
+  calculationSignature: string,
+  onCalculationCounted?: () => void
+): void {
+  if (typeof window === 'undefined') return
+  
+  // If this is the same calculation signature, cancel the previous timeout
+  if (lastCalculationSignature === calculationSignature) {
+    return // Already counting this one
+  }
+  
+  // Cancel any pending timeout
+  if (pendingCalculationTimeout) {
+    clearTimeout(pendingCalculationTimeout)
+  }
+  
+  // Set new timeout - count after 3 seconds of stability
+  lastCalculationSignature = calculationSignature
+  pendingCalculationTimeout = setTimeout(() => {
+    const current = getFreeCalculationsUsed()
+    if (current < FREE_TIER_LIMIT) {
+      incrementFreeCalculations()
+      onCalculationCounted?.()
+      console.log('[v0] Calculation counted after 3-second delay. Remaining:', getFreeCalculationsRemaining())
+    }
+    pendingCalculationTimeout = null
+  }, CALCULATION_DEBOUNCE_MS)
 }
 
 export function resetFreeCalculations(): void {

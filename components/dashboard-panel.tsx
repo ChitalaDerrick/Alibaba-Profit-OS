@@ -2,10 +2,10 @@
 
 import { Info, Save, Check } from "lucide-react"
 import { useState, useEffect, useRef } from "react"
-import { useCalculator, formatCurrency } from "@/lib/calculator-store"
-import { incrementFreeCalculations, hasExhaustedFreeCalculations } from "@/lib/free-calculations"
-import { SaveProductModal } from "./save-product-modal"
+import { useCalculator, formatCurrency, formatCompactNumber } from "@/lib/calculator-store"
+import { debouncedIncrementFreeCalculations, hasExhaustedFreeCalculations } from "@/lib/free-calculations"
 import { NativeAdTile } from "./native-ad-tile"
+import { CalculationCelebration } from "./calculation-celebration"
 
 interface DashboardPanelProps {
   onSaveDisabled?: () => void
@@ -17,12 +17,24 @@ interface DashboardPanelProps {
 export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated = false, onCalculationExhausted }: DashboardPanelProps) {
   const { state, results } = useCalculator()
   const [justSaved, setJustSaved] = useState(false)
-  const [showSaveModal, setShowSaveModal] = useState(false)
+  const [showCelebration, setShowCelebration] = useState(false)
   const prevNetProfitRef = useRef<number | null>(null)
 
   // Track when a new calculation occurs
+  // A calculation is complete when:
+  // 1. Cost, Sale Price, and Quantity are filled
+  // 2. AND shipping info is entered (either weight for AIR or dimensions for SEA)
   useEffect(() => {
     if (isAuthenticated) return // Don't track for authenticated users
+    
+    // Check if calculation is complete (has shipping info)
+    const hasShippingInfo = 
+      (state.shippingMethod === "AIR" && state.weight > 0) ||
+      (state.shippingMethod === "SEA" && state.length > 0 && state.width > 0 && state.height > 0)
+    
+    const hasBasicInfo = state.unitCost > 0 && state.unitSale > 0 && state.quantity > 0
+    
+    const isCalculationComplete = hasBasicInfo && hasShippingInfo
     
     // Create a unique calculation signature from all input values
     const calculationSignature = JSON.stringify({
@@ -31,22 +43,26 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
       quantity: state.quantity,
       unitSale: state.unitSale,
       weight: state.weight,
+      length: state.length,
+      width: state.width,
+      height: state.height,
       airRate: state.airRate,
       seaRate: state.seaRate,
       adBudget: state.adBudget,
       shippingMethod: state.shippingMethod,
     })
     
-    // Store the signature and compare on next render
-    if (prevNetProfitRef.current !== calculationSignature && prevNetProfitRef.current !== null) {
-      const updated = incrementFreeCalculations()
-      console.log('[v0] Calculation tracked. Remaining:', 10 - updated)
-      
-      // Check if user just exhausted their free calculations
-      if (hasExhaustedFreeCalculations()) {
-        console.log('[v0] Free calculations exhausted!')
-        onCalculationExhausted?.()
-      }
+    // Use debounced increment - waits 3 seconds to count the calculation
+    // This allows users to explore and test without feeling rushed
+    if (isCalculationComplete && prevNetProfitRef.current !== calculationSignature && prevNetProfitRef.current !== null) {
+      debouncedIncrementFreeCalculations(calculationSignature, () => {
+        setShowCelebration(true)
+        // Check if user just exhausted their free calculations
+        if (hasExhaustedFreeCalculations()) {
+          console.log('[v0] Free calculations exhausted!')
+          onCalculationExhausted?.()
+        }
+      })
     }
     
     prevNetProfitRef.current = calculationSignature
@@ -61,14 +77,41 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
       return
     }
 
-    // Show the save modal to get product name
-    setShowSaveModal(true)
-  }
+    try {
+      const payload = {
+        productName: state.itemName || `Product ${Date.now()}`,
+        unitCost: state.unitCost,
+        unitSale: state.unitSale,
+        quantity: state.quantity,
+        profitMargin: parseFloat((results.profitMargin || 0).toFixed(1)),
+        totalProfit: results.netProfit,
+      }
+      
+      // Save product directly without modal
+      const response = await fetch('/api/products', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
 
-  const handleSaveSuccess = () => {
-    // Show success indicator
-    setJustSaved(true)
-    setTimeout(() => setJustSaved(false), 2000)
+      const responseData = await response.json()
+
+      if (!response.ok) {
+        throw new Error(responseData.error || 'Failed to save product')
+      }
+
+      // Show success indicator
+      setJustSaved(true)
+      
+      // Reload page after short delay to show success feedback
+      setTimeout(() => {
+        window.location.href = window.location.href
+      }, 1500)
+    } catch (error) {
+      console.error('[v0] Save error:', error)
+      alert(`Error saving product: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
   }
 
   const canSaveProduct = state.unitCost > 0 && state.unitSale > 0
@@ -95,22 +138,16 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
   const isNegativeProfit = results.netProfit < 0
 
   return (
-    <>
-      <SaveProductModal 
-        isOpen={showSaveModal}
-        onClose={() => setShowSaveModal(false)}
-        onSuccess={handleSaveSuccess}
-      />
-      <div className="lg:col-span-8 space-y-6">
+    <div className="lg:col-span-8 space-y-6 sm:space-y-7">
       {/* Main KPI Card */}
-      <div className="bg-slate-900 rounded-[2.5rem] p-10 text-white relative overflow-hidden shadow-2xl">
+      <div className="bg-slate-900 rounded-2xl sm:rounded-[2.5rem] p-6 sm:p-10 text-white relative overflow-hidden shadow-2xl">
         {/* Background Decor */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/20 blur-[100px] rounded-full -mr-20 -mt-20" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-orange-600/10 blur-[80px] rounded-full -ml-10 -mb-10" />
 
         <div className="relative z-10">
-          <div className="flex justify-between items-start mb-12">
-            <div>
+          <div className="flex flex-col md:flex-row md:justify-between md:items-start mb-12 gap-4 md:gap-6">
+            <div className="flex-1">
               <div className="text-xs font-black tracking-widest text-blue-400 uppercase mb-2">
                 {state.itemName || "PRODUCT ANALYSIS"}
               </div>
@@ -118,7 +155,7 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
                 Projected Net Profit
               </h3>
               <div
-                className={`text-7xl font-extrabold tracking-tighter mt-2 ${
+                className={`text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tighter mt-2 leading-tight break-words overflow-hidden ${
                   isNegativeProfit ? "text-red-400" : "text-white"
                 }`}
               >
@@ -126,7 +163,7 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
               </div>
             </div>
             <div
-              className={`px-6 py-3 rounded-2xl font-black text-sm uppercase tracking-wider ${
+              className={`px-4 sm:px-6 py-2 sm:py-3 rounded-2xl font-black text-xs sm:text-sm uppercase tracking-wider whitespace-nowrap ${
                 isLowMargin
                   ? "bg-red-500/10 border border-red-500/20 text-red-400"
                   : "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
@@ -168,35 +205,38 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
             </button>
           )}
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="bg-white/5 border border-white/10 rounded-3xl p-5">
-              <p className="text-[10px] font-black text-slate-500 uppercase mb-1">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+            <div className="bg-white/5 border border-white/10 rounded-2xl sm:rounded-3xl p-3 sm:p-5 min-w-0">
+              <p className="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase mb-1 line-clamp-1">
                 Gross Sales
               </p>
-              <p className="text-xl font-bold">
-                {formatCurrency(results.totalSales)}
+              <p className="text-xs sm:text-sm md:text-base lg:text-lg font-bold truncate">
+                <span className="md:hidden">{formatCompactNumber(results.totalSales)}</span>
+                <span className="hidden md:inline">{formatCurrency(results.totalSales)}</span>
               </p>
             </div>
-            <div className="bg-white/5 border border-white/10 rounded-3xl p-5">
-              <p className="text-[10px] font-black text-slate-500 uppercase mb-1">
+            <div className="bg-white/5 border border-white/10 rounded-2xl sm:rounded-3xl p-3 sm:p-5 min-w-0">
+              <p className="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase mb-1 line-clamp-1">
                 Markup %
               </p>
-              <p className="text-xl font-bold">{results.markup.toFixed(1)}%</p>
+              <p className="text-xs sm:text-sm md:text-base lg:text-lg font-bold truncate">{results.markup.toFixed(1)}%</p>
             </div>
-            <div className="bg-white/5 border border-white/10 rounded-3xl p-5">
-              <p className="text-[10px] font-black text-slate-500 uppercase mb-1">
+            <div className="bg-white/5 border border-white/10 rounded-2xl sm:rounded-3xl p-3 sm:p-5 min-w-0">
+              <p className="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase mb-1 line-clamp-1">
                 Shipping Total
               </p>
-              <p className="text-xl font-bold">
-                {formatCurrency(results.totalShipping)}
+              <p className="text-xs sm:text-sm md:text-base lg:text-lg font-bold truncate">
+                <span className="md:hidden">{formatCompactNumber(results.totalShipping)}</span>
+                <span className="hidden md:inline">{formatCurrency(results.totalShipping)}</span>
               </p>
             </div>
-            <div className="bg-white/5 border border-white/10 rounded-3xl p-5">
-              <p className="text-[10px] font-black text-slate-500 uppercase mb-1">
+            <div className="bg-white/5 border border-white/10 rounded-2xl sm:rounded-3xl p-3 sm:p-5 min-w-0">
+              <p className="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase mb-1 line-clamp-1">
                 Unit B-Even
               </p>
-              <p className="text-xl font-bold">
-                {formatCurrency(results.breakEven)}
+              <p className="text-xs sm:text-sm md:text-base lg:text-lg font-bold truncate">
+                <span className="md:hidden">{formatCompactNumber(results.breakEven)}</span>
+                <span className="hidden md:inline">{formatCurrency(results.breakEven)}</span>
               </p>
             </div>
           </div>
@@ -248,52 +288,55 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
       </div>
 
       {/* Secondary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white/80 backdrop-blur-xl border border-white/30 shadow-[0_4px_24px_-2px_rgba(0,0,0,0.05)] rounded-[2rem] p-6 flex flex-col justify-between h-40">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
+        <div className="bg-white/80 backdrop-blur-xl border border-white/30 shadow-[0_4px_24px_-2px_rgba(0,0,0,0.05)] rounded-xl sm:rounded-[2rem] p-4 sm:p-6 flex flex-col justify-between min-w-0">
+          <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">
             Inventory Load
           </p>
-          <div>
-            <p className="text-3xl font-extrabold text-slate-800">
-              {formatCurrency(results.totalBuying)}
+          <div className="min-w-0">
+            <p className="text-lg sm:text-2xl md:text-3xl font-extrabold text-slate-800 truncate">
+              <span className="md:hidden">{formatCompactNumber(results.totalBuying)}</span>
+              <span className="hidden md:inline">{formatCurrency(results.totalBuying)}</span>
             </p>
-            <p className="text-[10px] text-slate-400 font-bold mt-1">
+            <p className="text-[9px] sm:text-[10px] text-slate-400 font-bold mt-1">
               Total purchasing cost
             </p>
           </div>
         </div>
-        <div className="bg-white/80 backdrop-blur-xl border border-white/30 shadow-[0_4px_24px_-2px_rgba(0,0,0,0.05)] rounded-[2rem] p-6 flex flex-col justify-between h-40">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+        <div className="bg-white/80 backdrop-blur-xl border border-white/30 shadow-[0_4px_24px_-2px_rgba(0,0,0,0.05)] rounded-xl sm:rounded-[2rem] p-4 sm:p-6 flex flex-col justify-between min-w-0">
+          <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">
             Logistic Metrics
           </p>
-          <div>
+          <div className="min-w-0">
             <div className="space-y-2">
-              <div>
+              <div className="min-w-0">
                 <p className="text-xs text-slate-500 font-semibold">Total Shipping</p>
-                <p className="text-2xl font-extrabold text-slate-800">
-                  {formatCurrency(results.totalShipping)}
+                <p className="text-sm sm:text-lg md:text-2xl font-extrabold text-slate-800 truncate">
+                  <span className="md:hidden">{formatCompactNumber(results.totalShipping)}</span>
+                  <span className="hidden md:inline">{formatCurrency(results.totalShipping)}</span>
                 </p>
               </div>
-              <div>
-                <p className="text-xs text-slate-500 font-semibold">Per Unit ({state.shippingMethod})</p>
-                <p className="text-lg font-bold text-slate-700">
-                  {formatCurrency(results.unitShipCost)}
+              <div className="min-w-0">
+                <p className="text-[11px] sm:text-xs text-slate-500 font-semibold line-clamp-1">Per Unit ({state.shippingMethod})</p>
+                <p className="text-xs sm:text-base md:text-lg font-bold text-slate-700 truncate">
+                  <span className="md:hidden">{formatCompactNumber(results.unitShipCost)}</span>
+                  <span className="hidden md:inline">{formatCurrency(results.unitShipCost)}</span>
                 </p>
               </div>
             </div>
           </div>
         </div>
-        <div className="bg-white/80 backdrop-blur-xl border border-white/30 shadow-[0_4px_24px_-2px_rgba(0,0,0,0.05)] rounded-[2rem] p-6 flex flex-col justify-between h-40">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+        <div className="bg-white/80 backdrop-blur-xl border border-white/30 shadow-[0_4px_24px_-2px_rgba(0,0,0,0.05)] rounded-xl sm:rounded-[2rem] p-4 sm:p-6 flex flex-col justify-between min-w-0">
+          <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">
             Load Volume
           </p>
-          <div>
-            <p className="text-3xl font-extrabold text-slate-800">
+          <div className="min-w-0">
+            <p className="text-lg sm:text-2xl md:text-3xl font-extrabold text-slate-800 truncate">
               {state.shippingMethod === "AIR"
                 ? results.totalLoad.toFixed(2)
                 : results.totalLoad.toFixed(4)}
             </p>
-            <p className="text-[10px] text-slate-400 font-bold mt-1">
+            <p className="text-[9px] sm:text-[10px] text-slate-400 font-bold mt-1">
               Total {state.shippingMethod === "AIR" ? "KG" : "CBM"}
             </p>
           </div>
@@ -301,13 +344,13 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
       </div>
 
       {/* Tips & Meta */}
-      <div className="bg-blue-600 rounded-[2rem] p-8 text-white flex flex-col md:flex-row items-center gap-6 shadow-xl shadow-blue-100">
-        <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center shrink-0">
-          <Info className="w-8 h-8" />
+      <div className="bg-blue-600 rounded-xl sm:rounded-[2rem] p-4 sm:p-8 text-white flex flex-col sm:flex-row items-center gap-3 sm:gap-6 shadow-xl shadow-blue-100">
+        <div className="w-12 sm:w-16 h-12 sm:h-16 bg-white/20 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0">
+          <Info className="w-6 sm:w-8 h-6 sm:h-8" />
         </div>
         <div>
-          <h4 className="font-bold text-lg">Pro Profit Tip</h4>
-          <p className="text-white/80 text-sm leading-relaxed">
+          <h4 className="font-bold text-base sm:text-lg">Pro Profit Tip</h4>
+          <p className="text-white/80 text-xs sm:text-sm leading-relaxed">
             Aim for a minimum of <strong>30% margin</strong> to cover hidden
             operational costs like returns, broken items, and transaction fees.
           </p>
@@ -333,7 +376,12 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
         adTitle="Scale Your Business"
         adDescription="Discover powerful e-commerce tools and resources that help you manage your store more efficiently and grow your sales."
       />
+
+      {/* Calculation Celebration - Show when a calculation is counted */}
+      <CalculationCelebration 
+        show={showCelebration} 
+        onDismiss={() => setShowCelebration(false)}
+      />
     </div>
-    </>
   )
 }

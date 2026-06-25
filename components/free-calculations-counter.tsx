@@ -90,6 +90,11 @@ export function FreeCalculationsCounter({ isAuthenticated }: FreeCalculationsCou
           {remaining} calculation{remaining !== 1 ? 's' : ''} remaining
         </p>
       )}
+      {!isWarning && !isExhausted && (
+        <p className="text-xs text-blue-600 mt-2">
+          Explore freely. We&apos;ll count after you settle on a calculation.
+        </p>
+      )}
     </div>
   )
 }

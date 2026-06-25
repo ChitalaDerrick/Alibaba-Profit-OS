@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const validation = validateSavedProduct(body)
 
-    if (!validation.success) {
+    if (!validation.success || !validation.data) {
       return NextResponse.json(
         { error: 'Invalid product data', details: validation.errors },
         { status: 400 }
