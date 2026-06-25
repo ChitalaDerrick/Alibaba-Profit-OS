@@ -3,8 +3,9 @@
 import { Info, Save, Check } from "lucide-react"
 import { useState, useEffect, useRef } from "react"
 import { useCalculator, formatCurrency, formatCompactNumber } from "@/lib/calculator-store"
-import { incrementFreeCalculations, hasExhaustedFreeCalculations } from "@/lib/free-calculations"
+import { debouncedIncrementFreeCalculations, hasExhaustedFreeCalculations } from "@/lib/free-calculations"
 import { NativeAdTile } from "./native-ad-tile"
+import { CalculationCelebration } from "./calculation-celebration"
 
 interface DashboardPanelProps {
   onSaveDisabled?: () => void
@@ -16,6 +17,7 @@ interface DashboardPanelProps {
 export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated = false, onCalculationExhausted }: DashboardPanelProps) {
   const { state, results } = useCalculator()
   const [justSaved, setJustSaved] = useState(false)
+  const [showCelebration, setShowCelebration] = useState(false)
   const prevNetProfitRef = useRef<number | null>(null)
 
   // Track when a new calculation occurs
@@ -50,17 +52,17 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
       shippingMethod: state.shippingMethod,
     })
     
-    // Store the signature and compare on next render
-    // Only increment counter if calculation is complete AND inputs have changed
+    // Use debounced increment - waits 3 seconds to count the calculation
+    // This allows users to explore and test without feeling rushed
     if (isCalculationComplete && prevNetProfitRef.current !== calculationSignature && prevNetProfitRef.current !== null) {
-      const updated = incrementFreeCalculations()
-      console.log('[v0] Complete calculation tracked. Remaining:', 10 - updated)
-      
-      // Check if user just exhausted their free calculations
-      if (hasExhaustedFreeCalculations()) {
-        console.log('[v0] Free calculations exhausted!')
-        onCalculationExhausted?.()
-      }
+      debouncedIncrementFreeCalculations(calculationSignature, () => {
+        setShowCelebration(true)
+        // Check if user just exhausted their free calculations
+        if (hasExhaustedFreeCalculations()) {
+          console.log('[v0] Free calculations exhausted!')
+          onCalculationExhausted?.()
+        }
+      })
     }
     
     prevNetProfitRef.current = calculationSignature
@@ -373,6 +375,12 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
         adUrl="https://www.shopify.com"
         adTitle="Scale Your Business"
         adDescription="Discover powerful e-commerce tools and resources that help you manage your store more efficiently and grow your sales."
+      />
+
+      {/* Calculation Celebration - Show when a calculation is counted */}
+      <CalculationCelebration 
+        show={showCelebration} 
+        onDismiss={() => setShowCelebration(false)}
       />
     </div>
   )

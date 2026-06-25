@@ -2,6 +2,11 @@
 export const FREE_TIER_LIMIT = 100
 const STORAGE_KEY = 'free_calculations_used'
 const UPDATE_EVENT = 'freeCalculationsUpdated'
+const CALCULATION_DEBOUNCE_MS = 3000 // Wait 3 seconds before counting a calculation
+
+// Track pending calculations to debounce
+let pendingCalculationTimeout: NodeJS.Timeout | null = null
+let lastCalculationSignature: string | null = null
 
 // A calculation is complete when user has entered shipping information
 // For AIR: weight > 0
@@ -66,6 +71,37 @@ export function incrementFreeCalculations(): number {
   notifyUpdate()
   
   return next
+}
+
+// Debounced version: Wait 3 seconds after calculation is complete before counting it
+// This allows users to explore and test without feeling rushed
+export function debouncedIncrementFreeCalculations(
+  calculationSignature: string,
+  onCalculationCounted?: () => void
+): void {
+  if (typeof window === 'undefined') return
+  
+  // If this is the same calculation signature, cancel the previous timeout
+  if (lastCalculationSignature === calculationSignature) {
+    return // Already counting this one
+  }
+  
+  // Cancel any pending timeout
+  if (pendingCalculationTimeout) {
+    clearTimeout(pendingCalculationTimeout)
+  }
+  
+  // Set new timeout - count after 3 seconds of stability
+  lastCalculationSignature = calculationSignature
+  pendingCalculationTimeout = setTimeout(() => {
+    const current = getFreeCalculationsUsed()
+    if (current < FREE_TIER_LIMIT) {
+      incrementFreeCalculations()
+      onCalculationCounted?.()
+      console.log('[v0] Calculation counted after 3-second delay. Remaining:', getFreeCalculationsRemaining())
+    }
+    pendingCalculationTimeout = null
+  }, CALCULATION_DEBOUNCE_MS)
 }
 
 export function resetFreeCalculations(): void {
