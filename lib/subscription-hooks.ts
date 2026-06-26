@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { checkSuperUserClient } from './super-user'
 import { useAuth } from './auth-hooks'
 
 export interface SubscriptionInfo {
@@ -22,21 +21,8 @@ export function useSubscription() {
     try {
       setLoading(true)
       
-      // First check if user is super user
-      if (user?.id) {
-        const isSuperUser = await checkSuperUserClient(user.id)
-        if (isSuperUser) {
-          setSubscription({
-            isActive: true,
-            type: 'super_user',
-            daysRemaining: Infinity,
-            isSuperUser: true,
-          })
-          return
-        }
-      }
-
-      // Otherwise fetch normal subscription (with cache bust)
+      // Fetch subscription status from authenticated endpoint
+      // Super user status is checked server-side and returned in response
       const response = await fetch(`/api/subscriptions/status?t=${Date.now()}`)
       if (response.ok) {
         const data = await response.json()
