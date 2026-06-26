@@ -1,6 +1,7 @@
 import { updateSession } from '@/lib/supabase/proxy'
 import { type NextRequest, NextResponse } from 'next/server'
 import { logSecurityEvent } from '@/lib/security-logger'
+import { getClientIp, trackSuspiciousAttempt } from '@/lib/ip-rate-limit'
 
 // List of suspicious paths that attackers commonly scan for
 const SUSPICIOUS_PATHS = [
@@ -21,11 +22,7 @@ const SUSPICIOUS_PATHS = [
   '/debug'
 ]
 
-function getClientIp(request: NextRequest): string {
-  const forwardedFor = request.headers.get('x-forwarded-for')
-  const realIp = request.headers.get('x-real-ip')
-  return forwardedFor?.split(',')[0] || realIp || 'unknown'
-}
+
 
 function hasSqlInjectionPattern(str: string): boolean {
   const sqlPatterns = [
@@ -38,6 +35,7 @@ function hasSqlInjectionPattern(str: string): boolean {
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
+  const clientIp = getClientIp(request)
 
   // Check for suspicious paths
   const isSuspiciousPath = SUSPICIOUS_PATHS.some(path => 
@@ -45,15 +43,26 @@ export async function middleware(request: NextRequest) {
   )
 
   if (isSuspiciousPath) {
+    // Track attempt from this IP
+    const isBlocked = trackSuspiciousAttempt(clientIp)
+
     logSecurityEvent('suspicious_request', {
       details: {
         path: pathname,
         method: request.method,
-        reason: 'suspicious_path_detected'
+        reason: 'suspicious_path_detected',
+        ip: clientIp,
+        blocked: isBlocked
       },
       request
     })
     
+    // Return 429 if IP is blocked, otherwise 404
+    if (isBlocked) {
+      console.log(`[v0 Security] Blocking IP ${clientIp} - exceeded suspicious request threshold`)
+      return new NextResponse('Too Many Requests', { status: 429 })
+    }
+
     // Return 404 to prevent information disclosure
     return new NextResponse('Not Found', { status: 404 })
   }
