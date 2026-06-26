@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { logSecurityEvent } from '@/lib/security-logger'
 
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY
 const PAYSTACK_API_URL = 'https://api.paystack.co'
@@ -45,6 +46,15 @@ export async function POST(request: NextRequest) {
 
     if (!paystackResponse.ok || !paystackData.status) {
       console.error('[v0] Paystack verification failed:', paystackData)
+      logSecurityEvent('failed_payment', {
+        userId,
+        details: {
+          reference,
+          paystackError: paystackData.message,
+          reason: 'paystack_verification_failed'
+        },
+        request
+      })
       return NextResponse.json(
         { 
           success: false,
@@ -56,6 +66,15 @@ export async function POST(request: NextRequest) {
 
     // Check if payment was successful
     if (paystackData.data.status !== 'success') {
+      logSecurityEvent('failed_payment', {
+        userId,
+        details: {
+          reference,
+          paystackStatus: paystackData.data.status,
+          reason: 'payment_not_successful'
+        },
+        request
+      })
       return NextResponse.json(
         { 
           success: false,
