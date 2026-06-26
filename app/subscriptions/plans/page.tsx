@@ -11,7 +11,7 @@ export default function SubscriptionPlansPage() {
   const router = useRouter()
   const { user, isLoading } = useAuth()
   const [loading, setLoading] = useState(false)
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
+  const [selectedPlan, setSelectedPlan] = useState<'daily' | 'monthly' | 'annual' | undefined>()
 
   // Redirect unauthenticated users
   if (!isLoading && !user) {
@@ -19,7 +19,7 @@ export default function SubscriptionPlansPage() {
     return null
   }
 
-  const handleSelectPlan = async (planType: string) => {
+  const handleSelectPlan = async (planType: 'daily' | 'monthly' | 'annual') => {
     try {
       setLoading(true)
       setSelectedPlan(planType)
@@ -89,7 +89,7 @@ export default function SubscriptionPlansPage() {
           <SubscriptionPricing 
             onSelect={handleSelectPlan}
             loading={loading}
-            selectedPlan={selectedPlan as any}
+            selectedPlan={selectedPlan}
           />
         </div>
 

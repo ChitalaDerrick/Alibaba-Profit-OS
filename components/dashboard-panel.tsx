@@ -16,7 +16,7 @@ interface DashboardPanelProps {
 export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated = false, onCalculationExhausted }: DashboardPanelProps) {
   const { state, results } = useCalculator()
   const [justSaved, setJustSaved] = useState(false)
-  const prevNetProfitRef = useRef<number | null>(null)
+  const prevCalculationRef = useRef<string | null>(null)
 
   // Track when a new calculation occurs
   // A calculation is complete when:
@@ -52,7 +52,7 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
     
     // Use debounced increment - waits 3 seconds to count the calculation
     // This allows users to explore and test without feeling rushed
-    if (isCalculationComplete && prevNetProfitRef.current !== calculationSignature && prevNetProfitRef.current !== null) {
+    if (isCalculationComplete && prevCalculationRef.current !== calculationSignature && prevCalculationRef.current !== null) {
       debouncedIncrementFreeCalculations(calculationSignature, () => {
         // Check if user just exhausted their free calculations
         if (hasExhaustedFreeCalculations()) {
@@ -62,7 +62,7 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
       })
     }
     
-    prevNetProfitRef.current = calculationSignature
+    prevCalculationRef.current = calculationSignature
   }, [state, isAuthenticated, onCalculationExhausted])
 
   const handleSave = async () => {
@@ -80,7 +80,7 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
         unitCost: state.unitCost,
         unitSale: state.unitSale,
         quantity: state.quantity,
-        profitMargin: parseFloat((results.profitMargin || 0).toFixed(1)),
+        profitMargin: parseFloat((results.margin || 0).toFixed(1)),
         totalProfit: results.netProfit,
       }
       

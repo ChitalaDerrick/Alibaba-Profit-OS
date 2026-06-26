@@ -5,12 +5,13 @@ import { formatCurrency } from "@/lib/calculator-store"
 
 interface Product {
   id: string
-  product_name: string
-  unit_cost: number
-  unit_sale: number
+  productName: string
+  unitCost: number
+  unitSale: number
   quantity: number
-  profit_margin: number
-  total_profit: number
+  profitMargin: number
+  totalProfit: number
+  createdAt: string
 }
 
 interface ProductDetailModalProps {
@@ -22,8 +23,8 @@ interface ProductDetailModalProps {
 export function ProductDetailModal({ isOpen, product, onClose }: ProductDetailModalProps) {
   if (!isOpen || !product) return null
 
-  const profitMarginColor = product.profit_margin >= 30 ? "text-emerald-600" : product.profit_margin >= 0 ? "text-blue-600" : "text-red-600"
-  const profitColor = product.total_profit >= 0 ? "text-emerald-600" : "text-red-600"
+  const profitMarginColor = product.profitMargin >= 30 ? "text-emerald-600" : product.profitMargin >= 0 ? "text-blue-600" : "text-red-600"
+  const profitColor = product.totalProfit >= 0 ? "text-emerald-600" : "text-red-600"
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
@@ -44,18 +45,18 @@ export function ProductDetailModal({ isOpen, product, onClose }: ProductDetailMo
           {/* Product Name */}
           <div>
             <p className="text-sm text-slate-500 mb-1">Product Name</p>
-            <p className="text-lg font-bold text-slate-900">{product.product_name}</p>
+            <p className="text-lg font-bold text-slate-900">{product.productName}</p>
           </div>
 
           {/* Cost & Sale Grid */}
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-slate-50 rounded-xl p-4">
               <p className="text-xs text-slate-500 mb-1">Unit Cost</p>
-              <p className="text-lg font-bold text-slate-900">KES {formatCurrency(product.unit_cost)}</p>
+              <p className="text-lg font-bold text-slate-900">KES {formatCurrency(product.unitCost)}</p>
             </div>
             <div className="bg-slate-50 rounded-xl p-4">
               <p className="text-xs text-slate-500 mb-1">Unit Sale</p>
-              <p className="text-lg font-bold text-slate-900">KES {formatCurrency(product.unit_sale)}</p>
+              <p className="text-lg font-bold text-slate-900">KES {formatCurrency(product.unitSale)}</p>
             </div>
           </div>
 
@@ -70,13 +71,13 @@ export function ProductDetailModal({ isOpen, product, onClose }: ProductDetailMo
             <div className="flex items-center justify-between">
               <span className="text-sm text-slate-600">Profit Margin</span>
               <span className={`font-bold ${profitMarginColor}`}>
-                {typeof product.profit_margin === 'number' ? product.profit_margin.toFixed(1) : '0.0'}%
+                {typeof product.profitMargin === 'number' ? product.profitMargin.toFixed(1) : '0.0'}%
               </span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-slate-600">Total Profit</span>
               <span className={`font-bold ${profitColor}`}>
-                KES {formatCurrency(product.total_profit)}
+                KES {formatCurrency(product.totalProfit)}
               </span>
             </div>
           </div>

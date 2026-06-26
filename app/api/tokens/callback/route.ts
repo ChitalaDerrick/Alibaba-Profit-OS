@@ -54,13 +54,14 @@ export async function GET(request: NextRequest) {
 
     // Add tokens to user
     try {
+      const packageName = (metadata as any).package_name || 'Token Package'
       await addTokensToUser(
         supabase,
         metadata.user_id,
         metadata.token_amount,
         'purchase',
         reference,
-        `Purchased ${metadata.package_name}`
+        `Purchased ${packageName}`
       )
 
       // Mark webhook as processed

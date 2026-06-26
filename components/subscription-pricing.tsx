@@ -16,7 +16,8 @@ export const SUBSCRIPTION_PLANS = {
       'Generate reports',
       'Ad-free experience',
       '24-hour access'
-    ]
+    ],
+    savings: undefined
   },
   monthly: {
     name: 'Monthly Plan',
@@ -31,7 +32,8 @@ export const SUBSCRIPTION_PLANS = {
       'Ad-free experience',
       'Auto-renews monthly'
     ],
-    savings: '60% off daily rate'
+    savings: '60% off daily rate',
+    recommended: undefined
   },
   annual: {
     name: 'Annual Plan',
