@@ -4,7 +4,9 @@ import { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
-import { Users, TrendingUp, CreditCard, Activity } from 'lucide-react'
+import { Users, TrendingUp, CreditCard, Activity, Shield } from 'lucide-react'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
 
 interface AnalyticsData {
   overview: {
@@ -121,9 +123,17 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-8">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-slate-900 mb-2">Admin Dashboard</h1>
-          <p className="text-slate-600">Real-time analytics and user management</p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold text-slate-900 mb-2">Admin Dashboard</h1>
+            <p className="text-slate-600">Real-time analytics and user management</p>
+          </div>
+          <Link href="/admin/security">
+            <Button className="gap-2 bg-slate-900 hover:bg-slate-800">
+              <Shield className="w-4 h-4" />
+              Security Monitor
+            </Button>
+          </Link>
         </div>
 
         {/* Key Metrics */}
