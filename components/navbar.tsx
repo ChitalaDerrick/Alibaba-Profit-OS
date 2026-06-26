@@ -7,13 +7,24 @@ import { SignupGateModal } from "./signup-gate-modal"
 import { useState, useEffect } from "react"
 import { useAuth } from "@/lib/auth-hooks"
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 
 export function Navbar() {
   const { state, updateState, resetState, results } = useCalculator()
   const { user, logout } = useAuth()
+  const searchParams = useSearchParams()
   const [showToast, setShowToast] = useState(false)
   const [showAuthMenu, setShowAuthMenu] = useState(false)
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+
+  // Refresh subscription status after payment redirect
+  useEffect(() => {
+    if (searchParams?.has('_refresh')) {
+      console.log('[v0] Payment redirect detected, refreshing subscription status')
+      // Dispatch custom event to trigger subscription refresh
+      window.dispatchEvent(new Event('refresh-subscription-status'))
+    }
+  }, [searchParams])
 
   const fetchExchangeRate = async () => {
     try {

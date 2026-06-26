@@ -24,11 +24,48 @@ export function SubscriptionStatus({ onClick }: SubscriptionStatusProps) {
     return () => clearInterval(interval)
   }, [])
 
+  // Listen for refresh events (e.g., after payment redirect)
+  useEffect(() => {
+    const handleRefresh = () => {
+      console.log('[v0] Refresh event received, fetching subscription status')
+      fetchSubscriptionStatus()
+    }
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        console.log('[v0] Page became visible, refreshing subscription status')
+        fetchSubscriptionStatus()
+      }
+    }
+
+    window.addEventListener('refresh-subscription-status', handleRefresh)
+    window.addEventListener('visibilitychange', handleVisibilityChange)
+
+    return () => {
+      window.removeEventListener('refresh-subscription-status', handleRefresh)
+      window.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [])
+
+  // Also expose a method to force refresh
+  useEffect(() => {
+    const refreshMethod = () => {
+      console.log('[v0] Manual refresh called')
+      fetchSubscriptionStatus()
+    }
+    ;(window as any).refreshSubscriptionStatus = refreshMethod
+    return () => {
+      delete (window as any).refreshSubscriptionStatus
+    }
+  }, [])
+
   const fetchSubscriptionStatus = async () => {
     try {
-      const response = await fetch('/api/subscriptions/status')
+      // Add timestamp to prevent caching
+      const response = await fetch(`/api/subscriptions/status?t=${Date.now()}`)
       if (response.ok) {
         const data = await response.json()
+        console.log('[v0] Subscription status fetched:', data)
         setSubscription(data)
       }
     } catch (error) {
