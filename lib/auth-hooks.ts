@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 interface User {
   id: string
   email: string
+  isSuperUser?: boolean
 }
 
 export function useAuth() {
@@ -17,7 +18,23 @@ export function useAuth() {
       try {
         const supabase = createClient()
         const { data: { user } } = await supabase.auth.getUser()
-        setUser(user ? { id: user.id, email: user.email || '' } : null)
+        
+        if (user) {
+          // Check if user is a super user
+          const { data: superUser } = await supabase
+            .from('super_users')
+            .select('id')
+            .eq('user_id', user.id)
+            .single()
+          
+          setUser({
+            id: user.id,
+            email: user.email || '',
+            isSuperUser: !!superUser
+          })
+        } else {
+          setUser(null)
+        }
       } catch (error) {
         console.error('[v0] Auth check error:', error)
         setUser(null)
