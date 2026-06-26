@@ -8,10 +8,16 @@ export async function GET(request: NextRequest) {
       data: { user },
     } = await supabase.auth.getUser()
 
+    // Return free tier for unauthenticated users
     if (!user) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
+        {
+          isActive: false,
+          type: 'free',
+          daysRemaining: 0,
+          message: 'Free tier - Sign in to upgrade',
+        },
+        { status: 200 }
       )
     }
 
