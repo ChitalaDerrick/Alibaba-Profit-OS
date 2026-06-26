@@ -146,16 +146,16 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-orange-600/10 blur-[80px] rounded-full -ml-10 -mb-10" />
 
         <div className="relative z-10">
-          <div className="flex flex-col md:flex-row md:justify-between md:items-start mb-12 gap-4 md:gap-6">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-start mb-10 sm:mb-14 gap-6 md:gap-8">
             <div className="flex-1">
-              <div className="text-xs font-black tracking-widest text-blue-400 uppercase mb-2">
+              <div className="text-xs font-black tracking-widest text-blue-400 uppercase mb-3 sm:mb-4">
                 {state.itemName || "PRODUCT ANALYSIS"}
               </div>
-              <h3 className="text-sm font-medium text-slate-400">
+              <h3 className="text-sm font-medium text-slate-400 mb-2 sm:mb-3">
                 Projected Net Profit
               </h3>
               <div
-                className={`text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tighter mt-2 leading-tight break-words overflow-hidden ${
+                className={`text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tighter mt-3 sm:mt-4 leading-tight break-words overflow-hidden ${
                   isNegativeProfit ? "text-red-400" : "text-white"
                 }`}
               >
@@ -163,7 +163,7 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
               </div>
             </div>
             <div
-              className={`px-4 sm:px-6 py-2 sm:py-3 rounded-2xl font-black text-xs sm:text-sm uppercase tracking-wider whitespace-nowrap ${
+              className={`px-5 sm:px-7 py-3 sm:py-4 rounded-2xl font-black text-xs sm:text-sm uppercase tracking-wider whitespace-nowrap ${
                 isLowMargin
                   ? "bg-red-500/10 border border-red-500/20 text-red-400"
                   : "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
@@ -178,7 +178,7 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
             <button
               onClick={handleSave}
               disabled={justSaved}
-              className={`mt-4 flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all ${
+              className={`mt-6 sm:mt-8 mb-6 sm:mb-8 flex items-center gap-2 px-5 py-3 sm:py-3.5 rounded-xl font-semibold text-sm transition-all w-full justify-center ${
                 justSaved
                   ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
                   : !isAuthenticated
@@ -205,7 +205,7 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
             </button>
           )}
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-5 md:gap-7">
             <div className="bg-white/5 border border-white/10 rounded-2xl sm:rounded-3xl p-3 sm:p-5 min-w-0">
               <p className="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase mb-1 line-clamp-1">
                 Gross Sales
