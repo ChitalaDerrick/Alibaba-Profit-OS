@@ -17,7 +17,7 @@ export function SubscriptionModal({ isOpen, onClose, onSuccess }: SubscriptionMo
   const [error, setError] = useState<string | null>(null)
   const [selectedPlan, setSelectedPlan] = useState<keyof typeof SUBSCRIPTION_PLANS | null>(null)
 
-  if (!isOpen || !user) return null
+  if (!isOpen) return null
 
   // Prevent body scroll when modal is open
   if (typeof document !== 'undefined') {
@@ -32,6 +32,13 @@ export function SubscriptionModal({ isOpen, onClose, onSuccess }: SubscriptionMo
   }
 
   const handlePlanSelect = async (planType: keyof typeof SUBSCRIPTION_PLANS) => {
+    // Require authentication before proceeding with payment
+    if (!user) {
+      // Redirect to login/signup
+      window.location.href = '/auth/login?redirect=/calculate&plan=' + planType
+      return
+    }
+
     setLoading(true)
     setError(null)
 

@@ -52,13 +52,14 @@ function PaymentCallbackContent() {
       setStatus('success')
       setIsAuthenticated(!!user)
 
-      // If user is authenticated, apply subscription and redirect to home
+      // If user is authenticated, subscription was already activated in verify-payment
       // If not, redirect to create account
       const redirectDelay = 2000
       setTimeout(() => {
         if (user?.id) {
-          console.log('[v0] User already authenticated, redirecting to home')
-          router.push('/')
+          console.log('[v0] User already authenticated, subscription activated, redirecting to home')
+          // Redirect to home with cache bust to ensure subscription status is refreshed
+          router.push('/?_refresh=' + Date.now())
         } else {
           console.log('[v0] User not authenticated, redirecting to create account')
           router.push(`/checkout/create-account?reference=${reference}`)
