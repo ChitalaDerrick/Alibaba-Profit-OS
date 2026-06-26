@@ -13,17 +13,43 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { checkLoginRateLimit, recordLoginAttempt, formatResetTime } from '@/lib/rate-limit'
 
 export default function Page() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [isRateLimited, setIsRateLimited] = useState(false)
+  const [resetTime, setResetTime] = useState<number | null>(null)
   const router = useRouter()
+
+  // Check rate limit on mount and periodically update reset time
+  useEffect(() => {
+    const checkLimit = () => {
+      const { allowed, resetTime: time } = checkLoginRateLimit()
+      setIsRateLimited(!allowed)
+      if (time) {
+        setResetTime(time)
+      }
+    }
+
+    checkLimit()
+    const interval = setInterval(checkLimit, 1000) // Update every second
+    return () => clearInterval(interval)
+  }, [])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Check rate limit
+    const { allowed } = checkLoginRateLimit()
+    if (!allowed) {
+      setError('Too many login attempts. Please try again later.')
+      return
+    }
+
     const supabase = createClient()
     setIsLoading(true)
     setError(null)
@@ -39,6 +65,8 @@ export default function Page() {
       
       if (error) {
         console.error('[v0] Login error from Supabase:', error)
+        // Record failed attempt
+        recordLoginAttempt()
         throw error
       }
       
@@ -49,6 +77,12 @@ export default function Page() {
     } catch (error: unknown) {
       console.error('[v0] Login error:', error)
       setError(error instanceof Error ? error.message : 'An error occurred')
+      // Check if now rate limited
+      const { allowed, resetTime: time } = checkLoginRateLimit()
+      if (!allowed && time) {
+        setIsRateLimited(true)
+        setResetTime(time)
+      }
     } finally {
       setIsLoading(false)
     }
@@ -90,7 +124,17 @@ export default function Page() {
                     />
                   </div>
                   {error && <p className="text-sm text-red-500">{error}</p>}
-                  <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isRateLimited && resetTime && (
+                    <div className="rounded-md bg-red-50 p-3 text-sm text-red-800">
+                      <p className="font-medium">Too many login attempts</p>
+                      <p>Try again in {formatResetTime(resetTime)}</p>
+                    </div>
+                  )}
+                  <Button 
+                    type="submit" 
+                    className="w-full" 
+                    disabled={isLoading || isRateLimited}
+                  >
                     {isLoading ? 'Logging in...' : 'Login'}
                   </Button>
                 </div>

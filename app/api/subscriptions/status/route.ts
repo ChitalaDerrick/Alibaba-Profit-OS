@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { isSuperUser } from '@/lib/super-user.server'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest) {
@@ -22,6 +23,22 @@ export async function GET(request: NextRequest) {
           type: 'free',
           daysRemaining: 0,
           message: 'Free tier - Sign in to upgrade',
+        },
+        { status: 200, headers }
+      )
+    }
+
+    // Check if user is super user (server-side validation only)
+    const isSuperUserAccount = await isSuperUser(user.id)
+    if (isSuperUserAccount) {
+      console.log('[v0] Super user detected for user:', user.id)
+      return NextResponse.json(
+        {
+          isActive: true,
+          type: 'super_user',
+          daysRemaining: Infinity,
+          isSuperUser: true,
+          message: 'Super user account - unlimited access',
         },
         { status: 200, headers }
       )
