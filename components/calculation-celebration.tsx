@@ -42,7 +42,7 @@ export function CalculationCelebration({ show, onDismiss }: CalculationCelebrati
         <div className="flex items-center justify-center gap-2 bg-blue-50 rounded-lg px-4 py-2">
           <Zap className="w-4 h-4 text-blue-500" />
           <span className="font-bold text-slate-900">
-            {remaining} / 100
+            {remaining} / 10
           </span>
           <span className="text-xs text-slate-600">free left</span>
         </div>

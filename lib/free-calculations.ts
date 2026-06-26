@@ -1,5 +1,5 @@
 // Free tier calculation tracking
-export const FREE_TIER_LIMIT = 100
+export const FREE_TIER_LIMIT = 10
 const STORAGE_KEY = 'free_calculations_used'
 const UPDATE_EVENT = 'freeCalculationsUpdated'
 const CALCULATION_DEBOUNCE_MS = 3000 // Wait 3 seconds before counting a calculation

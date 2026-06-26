@@ -34,7 +34,7 @@ export function SignupGateModal({ isOpen, onClose }: SignupGateModalProps) {
               Unlock Full Access
             </h2>
             <p className="text-slate-600">
-              You&apos;ve completed your 100 free calculations. Upgrade to continue with unlimited access and premium features.
+              You&apos;ve completed your 10 free calculations. Upgrade to continue with unlimited access and premium features.
             </p>
           </div>
 
