@@ -57,9 +57,21 @@ export async function GET(request: NextRequest) {
 
     // Check if subscription has expired
     const now = new Date()
-    const isExpired = subscription.subscription_end_date && new Date(subscription.subscription_end_date) < now
+    const endDate = subscription.subscription_end_date ? new Date(subscription.subscription_end_date) : null
+    const isExpired = endDate ? endDate < now : false
 
-    const isActive = subscription.is_active && !isExpired
+    // Subscription is active if:
+    // 1. It has a valid end date in the future (not expired)
+    // 2. OR is_active flag is explicitly true
+    const isActive = !isExpired || subscription.is_active === true
+
+    console.log('[v0] Subscription active check:', { 
+      endDate, 
+      now, 
+      isExpired, 
+      is_active: subscription.is_active,
+      isActive 
+    })
 
     return NextResponse.json(
       {
