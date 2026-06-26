@@ -1,7 +1,6 @@
 'use client'
 
 import { Check, Zap, TrendingUp, Lock, ArrowRight } from 'lucide-react'
-import Link from 'next/link'
 import { useEffect, useState } from 'react'
 
 interface Package {
@@ -267,16 +266,7 @@ export function FreeTierExhaustedPage() {
             </div>
           </div>
 
-          {/* Footer CTA */}
-          <div className="mt-12 text-center">
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 text-slate-400 hover:text-slate-200 transition-colors"
-            >
-              Back to Calculator
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
+
         </div>
       </div>
     </div>
