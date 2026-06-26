@@ -5,7 +5,6 @@ import { useState, useEffect, useRef } from "react"
 import { useCalculator, formatCurrency, formatCompactNumber } from "@/lib/calculator-store"
 import { debouncedIncrementFreeCalculations, hasExhaustedFreeCalculations } from "@/lib/free-calculations"
 import { NativeAdTile } from "./native-ad-tile"
-import { CalculationCelebration } from "./calculation-celebration"
 
 interface DashboardPanelProps {
   onSaveDisabled?: () => void
@@ -17,7 +16,6 @@ interface DashboardPanelProps {
 export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated = false, onCalculationExhausted }: DashboardPanelProps) {
   const { state, results } = useCalculator()
   const [justSaved, setJustSaved] = useState(false)
-  const [showCelebration, setShowCelebration] = useState(false)
   const prevNetProfitRef = useRef<number | null>(null)
 
   // Track when a new calculation occurs
@@ -56,7 +54,6 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
     // This allows users to explore and test without feeling rushed
     if (isCalculationComplete && prevNetProfitRef.current !== calculationSignature && prevNetProfitRef.current !== null) {
       debouncedIncrementFreeCalculations(calculationSignature, () => {
-        setShowCelebration(true)
         // Check if user just exhausted their free calculations
         if (hasExhaustedFreeCalculations()) {
           console.log('[v0] Free calculations exhausted!')
@@ -377,11 +374,7 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
         adDescription="Discover powerful e-commerce tools and resources that help you manage your store more efficiently and grow your sales."
       />
 
-      {/* Calculation Celebration - Show when a calculation is counted */}
-      <CalculationCelebration 
-        show={showCelebration} 
-        onDismiss={() => setShowCelebration(false)}
-      />
+
     </div>
   )
 }
