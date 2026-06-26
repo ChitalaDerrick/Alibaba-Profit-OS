@@ -35,7 +35,7 @@ export function SaveProductModal({ isOpen, onClose, onSuccess }: SaveProductModa
         unitCost: state.unitCost,
         unitSale: state.unitSale,
         quantity: state.quantity,
-        profitMargin: results.margin.toFixed(1),
+        profitMargin: parseFloat((results.margin || 0).toFixed(1)),
         totalProfit: results.netProfit,
       })
 

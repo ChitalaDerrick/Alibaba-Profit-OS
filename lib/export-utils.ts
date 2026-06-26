@@ -56,9 +56,9 @@ export async function exportReportAsPDF(projectId: string, projectName: string) 
     const opt = {
       margin: 10,
       filename: `report-${projectName}-${Date.now()}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
+      image: { type: 'png' as const, quality: 0.98 },
       html2canvas: { scale: 2 },
-      jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' },
+      jsPDF: { orientation: 'portrait' as const, unit: 'mm' as const, format: 'a4' as const },
     }
 
     html2pdf.default().set(opt).from(element).save()

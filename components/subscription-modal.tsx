@@ -15,7 +15,7 @@ export function SubscriptionModal({ isOpen, onClose, onSuccess }: SubscriptionMo
   const { user } = useAuth()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [selectedPlan, setSelectedPlan] = useState<keyof typeof SUBSCRIPTION_PLANS | null>(null)
+  const [selectedPlan, setSelectedPlan] = useState<keyof typeof SUBSCRIPTION_PLANS | undefined>()
 
   if (!isOpen) return null
 

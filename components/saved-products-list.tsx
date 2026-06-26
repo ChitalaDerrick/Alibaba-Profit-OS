@@ -50,7 +50,7 @@ export function SavedProductsList({ onUpgradeClick }: SavedProductsListProps) {
               {/* Product Name */}
               <div className="mb-3">
                 <p className="font-semibold text-slate-900 truncate group-hover:text-blue-600 transition-colors">
-                  {product.product_name || "Unnamed"}
+                  {product.productName || "Unnamed"}
                 </p>
               </div>
 
@@ -58,22 +58,22 @@ export function SavedProductsList({ onUpgradeClick }: SavedProductsListProps) {
               <div className="space-y-2 text-sm">
                 <div className="flex items-center justify-between">
                   <span className="text-slate-500">Cost</span>
-                  <span className="font-medium text-slate-900">KES {formatCurrency(product.unit_cost)}</span>
+                  <span className="font-medium text-slate-900">KES {formatCurrency(product.unitCost)}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-slate-500">Sale</span>
-                  <span className="font-medium text-slate-900">KES {formatCurrency(product.unit_sale)}</span>
+                  <span className="font-medium text-slate-900">KES {formatCurrency(product.unitSale)}</span>
                 </div>
                 <div className="flex items-center justify-between pt-2 border-t border-slate-100">
                   <span className="text-slate-500">Profit</span>
-                  <span className={`font-bold ${product.total_profit >= 0 ? "text-emerald-600" : "text-red-600"}`}>
-                    KES {formatCurrency(product.total_profit)}
+                  <span className={`font-bold ${product.totalProfit >= 0 ? "text-emerald-600" : "text-red-600"}`}>
+                    KES {formatCurrency(product.totalProfit)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-slate-500">Margin</span>
-                  <span className={`font-medium ${product.profit_margin >= 30 ? "text-emerald-600" : product.profit_margin >= 0 ? "text-blue-600" : "text-red-600"}`}>
-                    {typeof product.profit_margin === 'number' ? product.profit_margin.toFixed(1) : '0.0'}%
+                  <span className={`font-medium ${product.profitMargin >= 30 ? "text-emerald-600" : product.profitMargin >= 0 ? "text-blue-600" : "text-red-600"}`}>
+                    {typeof product.profitMargin === 'number' ? product.profitMargin.toFixed(1) : '0.0'}%
                   </span>
                 </div>
               </div>
