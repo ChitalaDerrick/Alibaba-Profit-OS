@@ -114,14 +114,38 @@ export async function POST(request: NextRequest) {
       }
 
       if (existingSubscription) {
+        // Fetch full subscription details to check if still active
+        const { data: fullSubscription, error: fullFetchError } = await supabase
+          .from('subscriptions')
+          .select('subscription_end_date')
+          .eq('id', existingSubscription.id)
+          .single()
+
+        let finalEndDate = endDate
+        
+        if (fullSubscription && fullSubscription.subscription_end_date) {
+          const currentEndDate = new Date(fullSubscription.subscription_end_date)
+          // If subscription hasn't expired yet, extend from current end date
+          // This enables subscription stacking
+          if (currentEndDate > now) {
+            finalEndDate = new Date(currentEndDate.getTime() + plan.days * 24 * 60 * 60 * 1000)
+            console.log('[v0] Subscription stacking enabled - extending from current end date', {
+              currentEndDate: currentEndDate.toISOString(),
+              newEndDate: finalEndDate.toISOString(),
+              extensionDays: plan.days
+            })
+          } else {
+            console.log('[v0] Subscription expired, resetting from today')
+          }
+        }
+
         // Update existing subscription
         console.log('[v0] Updating existing subscription:', existingSubscription.id)
         const { error: updateError } = await supabase
           .from('subscriptions')
           .update({
             subscription_type: planType,
-            subscription_start_date: now,
-            subscription_end_date: endDate,
+            subscription_end_date: finalEndDate,
             is_active: true,
             auto_renew: planType !== 'daily',
             updated_at: new Date(),
@@ -131,7 +155,7 @@ export async function POST(request: NextRequest) {
         if (updateError) {
           console.error('[v0] Subscription update error:', updateError)
         } else {
-          console.log('[v0] Subscription updated for user:', userId)
+          console.log('[v0] Subscription updated for user:', userId, { endDate: finalEndDate.toISOString() })
         }
       } else {
         // Create new subscription
