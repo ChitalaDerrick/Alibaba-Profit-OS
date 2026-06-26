@@ -36,10 +36,11 @@ export function useSubscription() {
         }
       }
 
-      // Otherwise fetch normal subscription
-      const response = await fetch('/api/subscriptions/status')
+      // Otherwise fetch normal subscription (with cache bust)
+      const response = await fetch(`/api/subscriptions/status?t=${Date.now()}`)
       if (response.ok) {
         const data = await response.json()
+        console.log('[v0] Subscription fetched:', data)
         setSubscription(data)
       } else {
         // If user is authenticated but API fails, set to free
@@ -70,7 +71,19 @@ export function useSubscription() {
     if (user?.id) {
       fetchSubscription()
       const interval = setInterval(fetchSubscription, 30000) // Check every 30 seconds
-      return () => clearInterval(interval)
+      
+      // Listen for refresh events (after payment)
+      const handleRefresh = () => {
+        console.log('[v0] Subscription refresh event received')
+        fetchSubscription()
+      }
+
+      window.addEventListener('refresh-subscription-status', handleRefresh)
+
+      return () => {
+        clearInterval(interval)
+        window.removeEventListener('refresh-subscription-status', handleRefresh)
+      }
     }
   }, [user?.id])
 
