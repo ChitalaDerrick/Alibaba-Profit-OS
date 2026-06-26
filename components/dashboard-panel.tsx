@@ -194,7 +194,7 @@ export function DashboardPanel({ onSaveDisabled, canSave = true, isAuthenticated
               ) : !isAuthenticated ? (
                 <>
                   <Save className="w-4 h-4" />
-                  Create Account to Save
+                  Upgrade To Save Your Products
                 </>
               ) : (
                 <>
