@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
 
 interface User {
   id: string
@@ -9,6 +10,7 @@ interface User {
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter()
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -27,5 +29,16 @@ export function useAuth() {
     checkAuth()
   }, [])
 
-  return { user, isLoading }
+  const logout = useCallback(async () => {
+    try {
+      const supabase = createClient()
+      await supabase.auth.signOut()
+      setUser(null)
+      router.push('/')
+    } catch (error) {
+      console.error('[v0] Logout error:', error)
+    }
+  }, [router])
+
+  return { user, isLoading, logout }
 }
