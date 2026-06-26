@@ -18,7 +18,7 @@ export function SubscriptionModal({ isOpen, onClose, onSuccess }: SubscriptionMo
   const [selectedPlan, setSelectedPlan] = useState<keyof typeof SUBSCRIPTION_PLANS | null>(null)
 
   if (!isOpen) return null
-  
+
   // If user is not authenticated, show sign-in prompt
   if (!user) {
     return (
@@ -40,12 +40,12 @@ export function SubscriptionModal({ isOpen, onClose, onSuccess }: SubscriptionMo
             </p>
           </div>
           
-          <button
-            onClick={onClose}
-            className="w-full px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-colors"
+          <a
+            href="/auth/login"
+            className="w-full px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-colors block text-center"
           >
             Sign In to Upgrade
-          </button>
+          </a>
         </div>
       </div>
     )
