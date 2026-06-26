@@ -17,7 +17,39 @@ export function SubscriptionModal({ isOpen, onClose, onSuccess }: SubscriptionMo
   const [error, setError] = useState<string | null>(null)
   const [selectedPlan, setSelectedPlan] = useState<keyof typeof SUBSCRIPTION_PLANS | null>(null)
 
-  if (!isOpen || !user) return null
+  if (!isOpen) return null
+  
+  // If user is not authenticated, show sign-in prompt
+  if (!user) {
+    return (
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 sm:p-8">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-slate-900">Upgrade Your Plan</h2>
+            <button
+              onClick={onClose}
+              className="text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+          
+          <div className="space-y-4 mb-6">
+            <p className="text-slate-600 text-center">
+              Sign in to upgrade your subscription and unlock unlimited calculations and product saving.
+            </p>
+          </div>
+          
+          <button
+            onClick={onClose}
+            className="w-full px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-colors"
+          >
+            Sign In to Upgrade
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   // Prevent body scroll when modal is open
   if (typeof document !== 'undefined') {
