@@ -33,6 +33,8 @@ export async function GET(request: NextRequest) {
       .eq('user_id', user.id)
       .single()
 
+    console.log('[v0] Subscription query result:', { userId: user.id, subscription, subError })
+
     if (subError && subError.code !== 'PGRST116') {
       console.error('[v0] Subscription fetch error:', subError)
       return NextResponse.json(
@@ -42,6 +44,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (!subscription) {
+      console.log('[v0] No subscription found for user:', user.id)
       return NextResponse.json(
         {
           isActive: false,

@@ -96,6 +96,7 @@ export async function POST(request: NextRequest) {
 
     // If user is authenticated, activate subscription immediately
     if (userId && plan) {
+      console.log('[v0] Activating subscription for user:', { userId, planType, plan })
       const now = new Date()
       const endDate = new Date(now.getTime() + plan.days * 24 * 60 * 60 * 1000)
 
@@ -106,12 +107,15 @@ export async function POST(request: NextRequest) {
         .eq('user_id', userId)
         .single()
 
+      console.log('[v0] Existing subscription check:', { existingSubscription, fetchError })
+
       if (fetchError && fetchError.code !== 'PGRST116') {
         console.error('[v0] Subscription fetch error:', fetchError)
       }
 
       if (existingSubscription) {
         // Update existing subscription
+        console.log('[v0] Updating existing subscription:', existingSubscription.id)
         const { error: updateError } = await supabase
           .from('subscriptions')
           .update({
@@ -127,10 +131,11 @@ export async function POST(request: NextRequest) {
         if (updateError) {
           console.error('[v0] Subscription update error:', updateError)
         } else {
-          console.log('[v0] Subscription activated for user:', userId)
+          console.log('[v0] Subscription updated for user:', userId)
         }
       } else {
         // Create new subscription
+        console.log('[v0] Creating new subscription for user:', userId)
         const { error: createError } = await supabase
           .from('subscriptions')
           .insert([
@@ -151,6 +156,8 @@ export async function POST(request: NextRequest) {
           console.log('[v0] Subscription created for user:', userId)
         }
       }
+    } else {
+      console.log('[v0] No userId or plan for subscription activation:', { userId, planType })
     }
 
     return NextResponse.json({
