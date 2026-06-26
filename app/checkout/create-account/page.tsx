@@ -31,10 +31,11 @@ function CreateAccountContent() {
         
         const { data: { user } } = await supabase.auth.getUser()
         
-        // If user is already authenticated, redirect home
+        // If user is already authenticated, their subscription was already updated
+        // in the verify-payment endpoint. Redirect home to see the updated subscription.
         if (user) {
-          console.log('[v0] User already authenticated, redirecting to home')
-          router.push('/')
+          console.log('[v0] User already authenticated, subscription already activated, redirecting to home')
+          router.push('/?_refresh=' + Date.now())
           return
         }
         

@@ -3,6 +3,12 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest) {
   try {
+    // Add no-cache headers to prevent stale subscription status
+    const headers = {
+      'Cache-Control': 'no-store, max-age=0',
+      'Pragma': 'no-cache',
+    }
+
     const supabase = await createClient()
     const {
       data: { user },
@@ -17,7 +23,7 @@ export async function GET(request: NextRequest) {
           daysRemaining: 0,
           message: 'Free tier - Sign in to upgrade',
         },
-        { status: 200 }
+        { status: 200, headers }
       )
     }
 
@@ -31,7 +37,7 @@ export async function GET(request: NextRequest) {
       console.error('[v0] Subscription fetch error:', subError)
       return NextResponse.json(
         { error: 'Failed to fetch subscription' },
-        { status: 500 }
+        { status: 500, headers }
       )
     }
 
@@ -42,7 +48,7 @@ export async function GET(request: NextRequest) {
           type: 'free',
           message: 'No active subscription',
         },
-        { status: 200 }
+        { status: 200, headers }
       )
     }
 
@@ -63,13 +69,13 @@ export async function GET(request: NextRequest) {
           ? Math.ceil((new Date(subscription.subscription_end_date).getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
           : 0,
       },
-      { status: 200 }
+      { status: 200, headers }
     )
   } catch (error) {
     console.error('[v0] Status check error:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: 500, headers: { 'Cache-Control': 'no-store' } }
     )
   }
 }
