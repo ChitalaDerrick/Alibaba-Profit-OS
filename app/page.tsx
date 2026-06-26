@@ -9,14 +9,17 @@ import { ReportsTab } from "@/components/reports-tab"
 import { AffiliateRecommendations } from "@/components/affiliate-recommendations"
 import { SignupGateModal } from "@/components/signup-gate-modal"
 import { FreeCalculationsCounter } from "@/components/free-calculations-counter"
+import { FreeTierExhaustedPage } from "@/components/free-tier-exhausted-page"
 import { useSubscription } from "@/lib/subscription-hooks"
 import { useCalculator } from "@/lib/calculator-store"
 import { useAuth } from "@/lib/auth-hooks"
+import { hasExhaustedFreeCalculations } from "@/lib/free-calculations"
 
 export default function Home() {
   const [showPaywall, setShowPaywall] = useState(false)
   const [showSignupGate, setShowSignupGate] = useState(false)
   const [activeTab, setActiveTab] = useState('calculator')
+  const [calculationsExhausted, setCalculationsExhausted] = useState(false)
   const { subscription: currentSubscription } = useSubscription()
   const { user, isLoading: authLoading } = useAuth()
   const { state } = useCalculator()
@@ -25,6 +28,14 @@ export default function Home() {
   const hasActiveSubscription = currentSubscription?.isActive && currentSubscription?.type !== 'free'
   const isSuperUser = currentSubscription?.type === 'super_user'
   const hasFullAccess = hasActiveSubscription || isSuperUser
+
+  // Check if free calculations are exhausted for unauthenticated users
+  useEffect(() => {
+    if (!isAuthenticated) {
+      const exhausted = hasExhaustedFreeCalculations()
+      setCalculationsExhausted(exhausted)
+    }
+  }, [isAuthenticated])
 
   const handleTabClick = (tab: string) => {
     // Lock saved products and reports behind subscription (super users bypass)
@@ -43,6 +54,18 @@ export default function Home() {
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-slate-600">Loading...</p>
         </div>
+      </div>
+    )
+  }
+
+  // Show paywall if unauthenticated user has exhausted free calculations
+  if (!isAuthenticated && calculationsExhausted) {
+    return (
+      <div className="flex flex-col min-h-svh w-full">
+        <Navbar />
+        <main className="flex-1">
+          <FreeTierExhaustedPage />
+        </main>
       </div>
     )
   }
@@ -132,7 +155,7 @@ export default function Home() {
                 canSave={isAuthenticated}
                 onSaveDisabled={() => setShowSignupGate(true)}
                 isAuthenticated={isAuthenticated}
-                onCalculationExhausted={() => setShowSignupGate(true)}
+                onCalculationExhausted={() => setCalculationsExhausted(true)}
               />
             </div>
           </>
