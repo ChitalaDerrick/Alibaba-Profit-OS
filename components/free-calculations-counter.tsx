@@ -14,12 +14,12 @@ export function FreeCalculationsCounter({ isAuthenticated }: FreeCalculationsCou
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    setMounted(true)
     const updateCounter = () => {
       setRemaining(getFreeCalculationsRemaining())
       setUsed(getFreeCalculationsUsed())
     }
     updateCounter()
+    setMounted(true)
     
     // Listen for calculation updates within this tab
     const unsubscribe = onFreeCalculationsUpdate(updateCounter)

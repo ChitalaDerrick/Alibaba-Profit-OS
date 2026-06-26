@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 const STORAGE_KEY = "profit-os-usage";
-const FREE_LIMIT = 70;
+const FREE_LIMIT = 10;
 
 interface UsageData {
   count: number;
